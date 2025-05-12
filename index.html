@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>数字人“星星” Demo - 语音回复版</title>
+  <title>数字人“星星” - Edge TTS 真人语音版</title>
   <style>
     body { margin: 0; font-family: sans-serif; background: #fbeff3; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
     #avatar { height: 400px; margin-bottom: 20px; transition: all 0.3s ease; }
@@ -50,7 +49,7 @@ recognition.onresult = async (event) => {
 
   const botReply = await getXingxingReply(userText);
   replyBox.textContent = `星星：${botReply}`;
-  speakText(botReply);
+  playXingxingVoice(botReply);
   handleAvatarAction(botReply);
 };
 
@@ -62,11 +61,11 @@ async function getXingxingReply(userInput) {
   isCalling = true;
 
   messages.push({ role: "user", content: userInput });
-  if (messages.length > 21) {  // 保留最近10轮对话+system
+  if (messages.length > 21) {  // 限制对话历史长度
     messages = [messages[0], ...messages.slice(-20)];
   }
 
-  const apiKey = "sk-0e19faf29ca241e4bab6264a0536232b";  // 替换成你自己的
+  const apiKey = "sk-0e19faf29ca241e4bab6264a0536232b";  // 🔥 替换成你的DeepSeek API Key
   const endpoint = "https://api.deepseek.com/v1/chat/completions";
 
   const response = await fetch(endpoint, {
@@ -96,6 +95,13 @@ async function getXingxingReply(userInput) {
   return reply;
 }
 
+function playXingxingVoice(text) {
+  const voice = 'zh-CN-XiaoxiaoNeural';  // 小晓女声（自然甜美）
+  const audioUrl = `https://tts-api.lovit.kr/edge/speak?text=${encodeURIComponent(text)}&voice=${voice}`;
+  const audio = new Audio(audioUrl);
+  audio.play();
+}
+
 function handleAvatarAction(replyText) {
   if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
     avatar.src = "smile.png";
@@ -106,15 +112,6 @@ function handleAvatarAction(replyText) {
   } else {
     avatar.src = "idle.png";
   }
-}
-
-function speakText(text) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'zh-CN';
-  utterance.pitch = 1.1;
-  utterance.rate = 1.0;
-  utterance.volume = 1;
-  speechSynthesis.speak(utterance);
 }
 </script>
 
