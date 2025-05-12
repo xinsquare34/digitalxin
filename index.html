@@ -27,7 +27,7 @@ const recognition = new SpeechRecognition();
 recognition.lang = 'zh-CN';
 
 let isCalling = false;
-let useMock = true;  // 🔥 true=本地模拟，false=调用OpenAI API
+let useMock = false;  // 🔥 true=本地模拟，false=调用OpenAI API
 
 speakBtn.addEventListener('mousedown', () => {
   replyBox.textContent = '🎤 录音中...';
