@@ -46,7 +46,7 @@ recognition.onresult = async (event) => {
 };
 
 async function getGPTReply(userInput) {
-  const apiKey = "sk-y7tAGc8rrVgm71jJFi5wVtXUemaxxpXLm0KhgcsmQBWcXVIT";  // 🔥 替换成你自己的
+  const apiKey = "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";  // 🔥 替换成你自己的
   const endpoint = "https://api.openai.com/v1/chat/completions";
 
   const response = await fetch(endpoint, {
