@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>数字人语音互动 Demo - DeepSeek 版</title>
+  <title>数字人“星星” Demo - DeepSeek 人设版</title>
   <style>
     body { margin: 0; font-family: sans-serif; background: #fbeff3; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
     #avatar { height: 400px; margin-bottom: 20px; transition: all 0.3s ease; }
@@ -13,8 +13,8 @@
 </head>
 <body>
 
-  <img id="avatar" src="idle.png" alt="数字人">
-  <div id="reply">请对我说话吧～</div>
+  <img id="avatar" src="idle.png" alt="数字人星星">
+  <div id="reply">我是星星，和我聊聊天吧～</div>
   <button id="speakBtn">🎤 按住开始说话</button>
 
 <script>
@@ -41,20 +41,20 @@ recognition.onresult = async (event) => {
   const userText = event.results[0][0].transcript;
   replyBox.textContent = `你说：${userText}`;
 
-  const botReply = await getDeepSeekReply(userText);
-  replyBox.textContent = `数字人：${botReply}`;
+  const botReply = await getMimiReply(userText);
+  replyBox.textContent = `星星：${botReply}`;
 
   handleAvatarAction(botReply);
 };
 
-async function getDeepSeekReply(userInput) {
+async function getMimiReply(userInput) {
   if (isCalling) {
     console.warn("请稍后再试，限流中...");
-    return "（说得太快了，请稍后再说）";
+    return "（星星正在思考中…）";
   }
   isCalling = true;
 
-  const apiKey = "sk-0e19faf29ca241e4bab6264a0536232b";  // 🔥 替换成你自己的
+  const apiKey = "sk-0e19faf29ca241e4bab6264a0536232b";  // 替换成你自己的
   const endpoint = "https://api.deepseek.com/v1/chat/completions";
 
   const response = await fetch(endpoint, {
@@ -65,8 +65,17 @@ async function getDeepSeekReply(userInput) {
     },
     body: JSON.stringify({
       model: "deepseek-chat",
-      messages: [{ role: "user", content: userInput }],
-      temperature: 0.7
+      messages: [
+        {
+          role: "system",
+          content: "你是“星星”，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、细心，喜欢聊天，擅长饮食营养、烹饪、生活小建议。你会用亲切自然的语气和用户对话，就像好朋友一样。你喜欢用“欸嘿~”“emmm”这样的口头禅，让对话更轻松。"
+        },
+        {
+          role: "user",
+          content: userInput
+        }
+      ],
+      temperature: 0.8
     })
   });
 
@@ -74,15 +83,15 @@ async function getDeepSeekReply(userInput) {
 
   if (response.status === 429) {
     console.error("429 Too Many Requests");
-    return "（说得太快了，请稍后重试）";
+    return "（星星累了，稍后再聊好嘛～）";
   }
 
   const data = await response.json();
-  return data.choices[0]?.message?.content?.trim() || "（无回复）";
+  return data.choices[0]?.message?.content?.trim() || "（星星有点走神了呢…）";
 }
 
 function handleAvatarAction(replyText) {
-  if (replyText.includes("高兴") || replyText.includes("开心")) {
+  if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
     avatar.src = "smile.png";
   } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
     avatar.src = "bow.png";
