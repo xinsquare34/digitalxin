@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>数字人语音互动 Demo - 稳定版</title>
+  <title>数字人语音互动 Demo - DeepSeek 版</title>
   <style>
     body { margin: 0; font-family: sans-serif; background: #fbeff3; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
     #avatar { height: 400px; margin-bottom: 20px; transition: all 0.3s ease; }
@@ -27,7 +27,6 @@ const recognition = new SpeechRecognition();
 recognition.lang = 'zh-CN';
 
 let isCalling = false;
-let useMock = false;  // 🔥 true=本地模拟，false=调用OpenAI API
 
 speakBtn.addEventListener('mousedown', () => {
   replyBox.textContent = '🎤 录音中...';
@@ -42,55 +41,44 @@ recognition.onresult = async (event) => {
   const userText = event.results[0][0].transcript;
   replyBox.textContent = `你说：${userText}`;
 
-  const botReply = await getReply(userText);
+  const botReply = await getDeepSeekReply(userText);
   replyBox.textContent = `数字人：${botReply}`;
 
   handleAvatarAction(botReply);
 };
 
-async function getReply(userInput) {
-  if (useMock) {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        if (userInput.includes("谢谢")) resolve("不用客气，鞠躬～");
-        else if (userInput.includes("高兴") || userInput.includes("开心")) resolve("我也很高兴见到你！");
-        else if (userInput.includes("不知道")) resolve("我也不清楚呢");
-        else resolve("收到！");
-      }, 500);
-    });
-  } else {
-    if (isCalling) {
-      console.warn("请稍后再试，限流中...");
-      return "（说得太快了，请稍后再说）";
-    }
-    isCalling = true;
-
-    const apiKey = "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";  // 🔥 替换成你自己的
-    const endpoint = "https://api.openai.com/v1/chat/completions";
-
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: userInput }],
-        temperature: 0.7
-      })
-    });
-
-    isCalling = false;
-
-    if (response.status === 429) {
-      console.error("429 Too Many Requests");
-      return "（说得太快了，请稍后重试）";
-    }
-
-    const data = await response.json();
-    return data.choices[0]?.message?.content?.trim() || "（无回复）";
+async function getDeepSeekReply(userInput) {
+  if (isCalling) {
+    console.warn("请稍后再试，限流中...");
+    return "（说得太快了，请稍后再说）";
   }
+  isCalling = true;
+
+  const apiKey = "sk-0e19faf29ca241e4bab6264a0536232b";  // 🔥 替换成你自己的
+  const endpoint = "https://api.deepseek.com/v1/chat/completions";
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: "deepseek-chat",
+      messages: [{ role: "user", content: userInput }],
+      temperature: 0.7
+    })
+  });
+
+  isCalling = false;
+
+  if (response.status === 429) {
+    console.error("429 Too Many Requests");
+    return "（说得太快了，请稍后重试）";
+  }
+
+  const data = await response.json();
+  return data.choices[0]?.message?.content?.trim() || "（无回复）";
 }
 
 function handleAvatarAction(replyText) {
