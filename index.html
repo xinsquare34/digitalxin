@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>数字人语音互动 Demo</title>
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #fbeff3; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+    #avatar { height: 400px; margin-bottom: 20px; transition: all 0.3s ease; }
+    #reply { font-size: 1.2rem; padding: 10px 20px; background: white; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    #speakBtn { margin-top: 20px; padding: 10px 20px; font-size: 1rem; border-radius: 8px; border: none; background: #ff7da9; color: white; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <img id="avatar" src="idle.png" alt="数字人">
+  <div id="reply">请对我说话吧～</div>
+  <button id="speakBtn">🎤 按住开始说话</button>
+
+<script>
+const avatar = document.getElementById('avatar');
+const replyBox = document.getElementById('reply');
+const speakBtn = document.getElementById('speakBtn');
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+recognition.lang = 'zh-CN';
+
+speakBtn.addEventListener('mousedown', () => {
+  replyBox.textContent = '🎤 录音中...';
+  recognition.start();
+});
+
+speakBtn.addEventListener('mouseup', () => {
+  recognition.stop();
+});
+
+recognition.onresult = async (event) => {
+  const userText = event.results[0][0].transcript;
+  replyBox.textContent = `你说：${userText}`;
+
+  const botReply = await getGPTReply(userText);
+  replyBox.textContent = `数字人：${botReply}`;
+
+  handleAvatarAction(botReply);
+};
+
+async function getGPTReply(userInput) {
+  const apiKey = "YOUR_OPENAI_API_KEY";  // 🔥 替换成你自己的
+  const endpoint = "https://api.openai.com/v1/chat/completions";
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: userInput }],
+      temperature: 0.7
+    })
+  });
+
+  const data = await response.json();
+  return data.choices[0].message.content.trim();
+}
+
+function handleAvatarAction(replyText) {
+  if (replyText.includes("高兴") || replyText.includes("开心")) {
+    avatar.src = "smile.png";
+  } else if (replyText.includes("谢谢")) {
+    avatar.src = "bow.png";
+  } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
+    avatar.src = "shrug.png";
+  } else {
+    avatar.src = "idle.png";
+  }
+}
+</script>
+
+</body>
+</html>
