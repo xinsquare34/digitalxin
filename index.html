@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>数字人星星</title>
+  <title>数字人“星星” Demo - 语音回复版</title>
   <style>
     body { margin: 0; font-family: sans-serif; background: #fbeff3; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
     #avatar { height: 400px; margin-bottom: 20px; transition: all 0.3s ease; }
@@ -50,7 +50,7 @@ recognition.onresult = async (event) => {
 
   const botReply = await getXingxingReply(userText);
   replyBox.textContent = `星星：${botReply}`;
-
+  speakText(botReply);
   handleAvatarAction(botReply);
 };
 
@@ -106,6 +106,15 @@ function handleAvatarAction(replyText) {
   } else {
     avatar.src = "idle.png";
   }
+}
+
+function speakText(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'zh-CN';
+  utterance.pitch = 1.1;
+  utterance.rate = 1.0;
+  utterance.volume = 1;
+  speechSynthesis.speak(utterance);
 }
 </script>
 
