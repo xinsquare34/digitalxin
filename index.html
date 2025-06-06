@@ -12,45 +12,152 @@
     <div class="digital-human">
       <div class="overlap-wrapper">
         <div class="overlap">
-          
-          <!-- Corrected video tag -->
-          <video class="for-videos" autoplay muted loop playsinline>
+
+          <!-- Video container with ID for JS access -->
+          <video id="avatar" class="for-videos" autoplay muted loop playsinline>
             <source src="img/relaxed.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
-          
+
           <div class="text-background"></div>
-          
+
           <div class="text-box-group">
             <div class="overlap-group">
               <div class="text-box"></div>
               <img class="text-box-outline" src="img/text-box-outline.svg" />
             </div>
           </div>
-          
-          <img class="speak-logo" src="img/speak-logo.png" />
+
+          <img class="speak-logo" src="img/speak-logo.png" id="speakBtn" />
           <div class="main-heading">星星 - 你的AI餐伴</div>
-          
+
           <div class="me-talking">
             <div class="div"><div class="text-wrapper">我：</div></div>
           </div>
-          
+
           <div class="xing-talking">
             <div class="div">
               <div class="text-wrapper">星星：</div>
-              <div class="xing-reply-text">你好，我是你的餐伴星星。<br />你可以随时和我聊天哦～</div>
+              <div id="reply" class="xing-reply-text">你好，我是你的餐伴星星。<br />你可以随时和我聊天哦～</div>
             </div>
           </div>
-          
+
           <img class="go-to-cooking" src="img/go-to-cooking.png" />
           <div class="cooking-text">烹饪问题点这里</div>
-          
+
           <img class="go-to-eating" src="img/go-to-eating.png" />
           <div class="eating-text">用餐陪伴点这里</div>
-          
+
           <div class="by-me">By: LIU XINXIN</div>
         </div>
       </div>
     </div>
+
+    <script>
+      const avatar = document.getElementById('avatar');
+      const replyBox = document.getElementById('reply');
+      const speakBtn = document.getElementById('speakBtn');
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'zh-CN';
+
+      let isCalling = false;
+
+      let messages = [
+        {
+          role: "system",
+          content: "你是“星星”，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
+        }
+      ];
+
+      speakBtn.addEventListener('mousedown', () => {
+        replyBox.textContent = '🎤 录音中...';
+        recognition.start();
+      });
+
+      speakBtn.addEventListener('mouseup', () => {
+        recognition.stop();
+      });
+
+      recognition.onresult = async (event) => {
+        const userText = event.results[0][0].transcript;
+        replyBox.textContent = `你说：${userText}`;
+
+        const botReply = await getXingxingReply(userText);
+        replyBox.textContent = `星星：${botReply}`;
+        speakText(botReply);
+        handleAvatarAction(botReply);
+      };
+
+      async function getXingxingReply(userInput) {
+        if (isCalling) {
+          console.warn("请稍后再试，限流中...");
+          return "（星星正在思考中…）";
+        }
+        isCalling = true;
+
+        messages.push({ role: "user", content: userInput });
+        if (messages.length > 21) {
+          messages = [messages[0], ...messages.slice(-20)];
+        }
+
+        const apiKey = "sk-0e19faf29ca241e4bab6264a0536232b";
+        const endpoint = "https://api.deepseek.com/v1/chat/completions";
+
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: "deepseek-chat",
+            messages: messages,
+            temperature: 0.8
+          })
+        });
+
+        isCalling = false;
+
+        if (response.status === 429) {
+          console.error("429 Too Many Requests");
+          return "（星星累了，稍后再聊好嘛～）";
+        }
+
+        const data = await response.json();
+        const reply = data.choices[0]?.message?.content?.trim() || "（星星有点走神了呢…）";
+
+        messages.push({ role: "assistant", content: reply });
+        return reply;
+      }
+
+      function handleAvatarAction(replyText) {
+        let newSrc = "img/relaxed.mp4";
+        if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
+          newSrc = "img/smile.mp4";
+        } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
+          newSrc = "img/bow.mp4";
+        } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
+          newSrc = "img/shrug.mp4";
+        }
+
+        if (avatar.querySelector('source').src !== newSrc) {
+          avatar.pause();
+          avatar.querySelector('source').src = newSrc;
+          avatar.load();
+          avatar.play();
+        }
+      }
+
+      function speakText(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.pitch = 1.1;
+        utterance.rate = 1.0;
+        utterance.volume = 1;
+        speechSynthesis.speak(utterance);
+      }
+    </script>
   </body>
 </html>
