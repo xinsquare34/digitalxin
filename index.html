@@ -7,13 +7,36 @@
     <link rel="icon" href="img/favicon.png" type="image/png">
     <link rel="stylesheet" href="globals.css" />
     <link rel="stylesheet" href="style.css" />
+    <style>
+      .chat-container {
+        position: absolute;
+        top: 200px;
+        left: 1070px;
+        width: 320px;
+        height: 700px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-right: 10px;
+      }
+
+      .chat-bubble {
+        background-color: #f6e7e1;
+        border-radius: 10px;
+        padding: 10px;
+        font-family: "Poppins-SemiBold", Helvetica;
+        font-size: 14px;
+        color: #da9c92;
+        max-width: 90%;
+      }
+    </style>
   </head>
   <body>
     <div class="digital-human">
       <div class="overlap-wrapper">
         <div class="overlap">
 
-          <!-- Video container with ID for JS access -->
           <video id="avatar" class="for-videos" autoplay muted loop playsinline>
             <source src="img/relaxed.mp4" type="video/mp4" />
             Your browser does not support the video tag.
@@ -31,15 +54,8 @@
           <img class="speak-logo" src="img/speak-logo.png" id="speakBtn" />
           <div class="main-heading">星星 - 你的AI餐伴</div>
 
-          <div class="me-talking">
-            <div class="div"><div class="text-wrapper">我：</div></div>
-          </div>
-
-          <div class="xing-talking">
-            <div class="div">
-              <div class="text-wrapper">星星：</div>
-              <div id="reply" class="xing-reply-text">你好，我是你的餐伴星星。<br />你可以随时和我聊天哦～</div>
-            </div>
+          <div class="chat-container" id="chatContainer">
+            <div class="chat-bubble">星星：你好，我是你的餐伴星星。你可以随时和我聊天哦～</div>
           </div>
 
           <img class="go-to-cooking" src="img/go-to-cooking.png" />
@@ -55,8 +71,8 @@
 
     <script>
       const avatar = document.getElementById('avatar');
-      const replyBox = document.getElementById('reply');
       const speakBtn = document.getElementById('speakBtn');
+      const chatContainer = document.getElementById('chatContainer');
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
@@ -72,7 +88,7 @@
       ];
 
       speakBtn.addEventListener('mousedown', () => {
-        replyBox.textContent = '🎤 录音中...';
+        addBubble('🎤 录音中...');
         recognition.start();
       });
 
@@ -82,10 +98,10 @@
 
       recognition.onresult = async (event) => {
         const userText = event.results[0][0].transcript;
-        replyBox.textContent = `你说：${userText}`;
+        addBubble(`我：${userText}`);
 
         const botReply = await getXingxingReply(userText);
-        replyBox.textContent = `星星：${botReply}`;
+        addBubble(`星星：${botReply}`);
         speakText(botReply);
         handleAvatarAction(botReply);
       };
@@ -130,6 +146,14 @@
 
         messages.push({ role: "assistant", content: reply });
         return reply;
+      }
+
+      function addBubble(text) {
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+        bubble.textContent = text;
+        chatContainer.appendChild(bubble);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
       }
 
       function handleAvatarAction(replyText) {
