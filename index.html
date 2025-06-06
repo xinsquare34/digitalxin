@@ -1,186 +1,43 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <title>数字人“星星” Demo - 语音回复版</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body {
-      width: 100%;
-      height: 100%;
-      font-family: sans-serif;
-      background: #fbeff3;
-    }
-    #container {
-      display: flex;
-      height: 100vh;
-      width: 100%;
-    }
-
-    /* 左侧背景部分 */
-    #scene {
-      flex: 3;
-      position: relative;
-      background: url('setting.jpg') no-repeat center center;
-      background-size: cover;
-    }
-
-    #avatar {
-      position: absolute;
-      top: 68%;
-      left: 30%;
-      transform: translate(-50%, -50%);
-      height: 575px;
-    }
-
-    /* 右侧对话区 */
-    #dialogue {
-      flex: 1;
-      background: #fff0f5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 30px 20px;
-    }
-
-    #reply {
-      font-size: 1.2rem;
-      padding: 20px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    #speakBtn {
-      padding: 10px 20px;
-      font-size: 1rem;
-      border-radius: 8px;
-      border: none;
-      background: #ff7da9;
-      color: white;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-
-  <div id="container">
-    <!-- 左侧场景 -->
-    <div id="scene">
-      <img id="avatar" src="relaxed.gif" alt="数字人星星">
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="globals.css" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="digital-human">
+      <div class="overlap-wrapper">
+        <div class="overlap">
+          <img class="for-videos" src="img/for-videos.png" />
+          <div class="text-background"></div>
+          <div class="text-box-group">
+            <div class="overlap-group">
+              <div class="text-box"></div>
+              <img class="text-box-outline" src="img/text-box-outline.svg" />
+            </div>
+          </div>
+          <img class="speak-logo" src="img/speak-logo.png" />
+          <div class="main-heading">星星 - 你的AI餐伴</div>
+          <div class="me-talking">
+            <div class="div"><div class="text-wrapper">我：</div></div>
+          </div>
+          <div class="xing-talking">
+            <div class="div">
+              <div class="text-wrapper">星星：</div>
+              <div class="xing-reply-text">你好，我是你的餐伴星星。<br />你可以随时和我聊天哦～</div>
+            </div>
+          </div>
+          <div class="cooking">
+            <div class="cooking-text-wrapper"><div class="cooking-text">烹饪问题点这里</div></div>
+          </div>
+          <div class="eating">
+            <div class="eating-text-wrapper"><div class="eating-text">用餐陪伴点这里</div></div>
+          </div>
+          <div class="by-me">By: LIU XINXIN</div>
+        </div>
+      </div>
     </div>
-
-    <!-- 右侧对话 -->
-    <div id="dialogue">
-      <div id="reply">我是星星，和我聊聊天吧～</div>
-      <button id="speakBtn">🎤 按住开始说话</button>
-    </div>
-  </div>
-
-<script>
-const avatar = document.getElementById('avatar');
-const replyBox = document.getElementById('reply');
-const speakBtn = document.getElementById('speakBtn');
-
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-const recognition = new SpeechRecognition();
-recognition.lang = 'zh-CN';
-
-let isCalling = false;
-
-let messages = [
-  {
-    role: "system",
-    content: "你是“星星”，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、细心，擅长饮食营养、烹饪、生活小建议。你会用亲切且知性的语气和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
-  }
-];
-
-speakBtn.addEventListener('mousedown', () => {
-  replyBox.textContent = '🎤 录音中...';
-  recognition.start();
-});
-
-speakBtn.addEventListener('mouseup', () => {
-  recognition.stop();
-});
-
-recognition.onresult = async (event) => {
-  const userText = event.results[0][0].transcript;
-  replyBox.textContent = `你说：${userText}`;
-
-  const botReply = await getXingxingReply(userText);
-  replyBox.textContent = `星星：${botReply}`;
-  speakText(botReply);
-  handleAvatarAction(botReply);
-};
-
-async function getXingxingReply(userInput) {
-  if (isCalling) {
-    console.warn("请稍后再试，限流中...");
-    return "（星星正在思考中…）";
-  }
-  isCalling = true;
-
-  messages.push({ role: "user", content: userInput });
-  if (messages.length > 21) {
-    messages = [messages[0], ...messages.slice(-20)];
-  }
-
-  const apiKey = "sk-0e19faf29ca241e4bab6264a0536232b"; // 替换成你自己的
-  const endpoint = "https://api.deepseek.com/v1/chat/completions";
-
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: "deepseek-chat",
-      messages: messages,
-      temperature: 0.8
-    })
-  });
-
-  isCalling = false;
-
-  if (response.status === 429) {
-    console.error("429 Too Many Requests");
-    return "（星星累了，稍后再聊好嘛～）";
-  }
-
-  const data = await response.json();
-  const reply = data.choices[0]?.message?.content?.trim() || "（星星有点走神了呢…）";
-
-  messages.push({ role: "assistant", content: reply });
-  return reply;
-}
-
-function handleAvatarAction(replyText) {
-  // 可根据关键词换星星表情，也可保持 relaxed.gif
-  if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
-    avatar.src = "smile.gif";
-  } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
-    avatar.src = "bow.png";
-  } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
-    avatar.src = "shrug.png";
-  } else {
-    avatar.src = "relaxed.gif"; // 默认状态
-  }
-}
-
-function speakText(text) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'zh-CN';
-  utterance.pitch = 1.1;
-  utterance.rate = 1.0;
-  utterance.volume = 1;
-  speechSynthesis.speak(utterance);
-}
-</script>
-
-</body>
+  </body>
 </html>
