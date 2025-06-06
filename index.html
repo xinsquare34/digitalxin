@@ -171,11 +171,31 @@
         return reply;
       }
 
-      function handleAvatarAction(replyText) {
-        let newSrc = "img/relaxed.mp4";
-        if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
-          newSrc = "img/happy.mp4";
-        } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
+      let currentEmotionVideo = "";
+
+function handleAvatarAction(replyText) {
+  if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
+    currentEmotionVideo = "img/happy.mp4";
+  } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
+    currentEmotionVideo = "img/bow.mp4";
+  } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
+    currentEmotionVideo = "img/shrug.mp4";
+  } else {
+    currentEmotionVideo = "img/relaxed.mp4";
+  }
+}
+
+function switchAvatarVideo(src) {
+  const video = avatar;
+  const source = video.querySelector('source');
+  if (source.getAttribute('src') === src) return;
+
+  const wasPlaying = !video.paused;
+  video.pause();
+  source.setAttribute('src', src);
+  video.load();
+  if (wasPlaying) video.play();
+} else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
           newSrc = "img/bow.mp4";
         } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
           newSrc = "img/shrug.mp4";
@@ -190,13 +210,24 @@
       }
 
       function speakText(text) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'zh-CN';
-        utterance.pitch = 1.1;
-        utterance.rate = 1.0;
-        utterance.volume = 1;
-        speechSynthesis.speak(utterance);
-      }
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'zh-CN';
+  utterance.pitch = 1.1;
+  utterance.rate = 1.0;
+  utterance.volume = 1;
+
+  // 切换到当前情绪视频
+  utterance.onstart = () => {
+    if (currentEmotionVideo) switchAvatarVideo(currentEmotionVideo);
+  };
+
+  // 播完后恢复为 relaxed
+  utterance.onend = () => {
+    switchAvatarVideo("img/relaxed.mp4");
+  };
+
+  speechSynthesis.speak(utterance);
+}
     </script>
   </body>
 </html>
