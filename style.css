@@ -141,59 +141,41 @@
   line-height: normal;
 }
 
-.digital-human .cooking {
-  position: absolute;
-  width: 1095px;
-  height: 820px;
-  top: 127px;
-  left: 10px;
+.digital-human .go-to-cooking {
+width: 1118px;
+position: absolute;
+height: 820px;
+top: 127px;
+left: 10px;
+object-fit: cover;
 }
-
-.digital-human .cooking-text-wrapper {
-  position: relative;
-  width: 1118px;
-  height: 820px;
-  background-image: url(./img/go-to-cooking.png);
-  background-size: cover;
-  background-position: 50% 50%;
-}
-
 .digital-human .cooking-text {
-  position: absolute;
-  width: 137px;
-  top: 656px;
-  left: 55px;
-  font-family: "Poppins-SemiBold", Helvetica;
-  font-weight: 600;
-  color: #ffffff80;
-  font-size: 14px;
-  text-align: center;
-  letter-spacing: -0.42px;
-  line-height: normal;
+position: absolute;
+width: 137px;
+top: 782px;
+left: 65px;
+font-family: "Poppins-SemiBold", Helvetica;
+font-weight: 600;
+color: #ffffff80;
+font-size: 14px;
+text-align: center;
+letter-spacing: -0.42px;
+line-height: normal;
 }
-
-.digital-human .eating {
-  position: absolute;
-  width: 1094px;
-  height: 819px;
-  top: 127px;
-  left: 10px;
-}
-
-.digital-human .eating-text-wrapper {
-  position: relative;
-  width: 1117px;
-  height: 820px;
-  background-image: url(./img/go-to-eating.png);
-  background-size: cover;
-  background-position: 50% 50%;
+.digital-human .go-to-eating {
+width: 1117px;
+position: absolute;
+height: 820px;
+top: 127px;
+left: 10px;
+object-fit: cover;
 }
 
 .digital-human .eating-text {
   position: absolute;
   width: 137px;
-  top: 553px;
-  left: 583px;
+  top: 679px;
+  left: 593px;
   font-family: "Poppins-SemiBold", Helvetica;
   font-weight: 600;
   color: #ffffff80;
