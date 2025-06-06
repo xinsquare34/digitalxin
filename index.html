@@ -172,7 +172,6 @@
       }
 
       let currentEmotionVideo = "";
-
 function handleAvatarAction(replyText) {
   if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
     currentEmotionVideo = "img/happy.mp4";
@@ -183,18 +182,6 @@ function handleAvatarAction(replyText) {
   } else {
     currentEmotionVideo = "img/relaxed.mp4";
   }
-}
-
-function switchAvatarVideo(src) {
-  const video = avatar;
-  const source = video.querySelector('source');
-  if (source.getAttribute('src') === src) return;
-
-  const wasPlaying = !video.paused;
-  video.pause();
-  source.setAttribute('src', src);
-  video.load();
-  if (wasPlaying) video.play();
 } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
           newSrc = "img/bow.mp4";
         } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
@@ -216,18 +203,28 @@ function switchAvatarVideo(src) {
   utterance.rate = 1.0;
   utterance.volume = 1;
 
-  // 切换到当前情绪视频
   utterance.onstart = () => {
-    if (currentEmotionVideo) switchAvatarVideo(currentEmotionVideo);
+    if (currentEmotionVideo && avatar.querySelector('source').src !== currentEmotionVideo) {
+      switchAvatarVideo(currentEmotionVideo);
+    }
   };
 
-  // 播完后恢复为 relaxed
   utterance.onend = () => {
     switchAvatarVideo("img/relaxed.mp4");
   };
 
   speechSynthesis.speak(utterance);
+      }
+    function switchAvatarVideo(src) {
+  const video = avatar;
+  const source = video.querySelector('source');
+  if (source.getAttribute('src') === src) return;
+  const wasPlaying = !video.paused;
+  video.pause();
+  source.setAttribute('src', src);
+  video.load();
+  if (wasPlaying) video.play();
 }
-    </script>
+</script>
   </body>
 </html>
