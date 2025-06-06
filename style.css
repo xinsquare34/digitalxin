@@ -1,0 +1,218 @@
+.digital-human {
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100%;
+}
+
+.digital-human .overlap-wrapper {
+  background-color: #ffffff;
+  overflow: hidden;
+  width: 1440px;
+  height: 820px;
+}
+
+.digital-human .overlap {
+  position: relative;
+  width: 1603px;
+  height: 1083px;
+  top: -127px;
+  left: -10px;
+}
+
+.digital-human .for-videos {
+  position: absolute;
+  width: 1092px;
+  height: 819px;
+  top: 127px;
+  left: 10px;
+  object-fit: cover;
+}
+
+.digital-human .text-background {
+  position: absolute;
+  width: 577px;
+  height: 1083px;
+  top: 0;
+  left: 1026px;
+  background-color: #f3e3dd;
+  filter: blur(16.9px);
+}
+
+.digital-human .text-box-group {
+  top: 218px;
+  left: 1105px;
+  position: absolute;
+  width: 296px;
+  height: 607px;
+}
+
+.digital-human .overlap-group {
+  position: relative;
+  height: 607px;
+}
+
+.digital-human .text-box {
+  position: absolute;
+  width: 288px;
+  height: 598px;
+  top: 5px;
+  left: 4px;
+  background-color: #ffffff;
+}
+
+.digital-human .text-box-outline {
+  top: 0;
+  left: 0;
+  position: absolute;
+  width: 296px;
+  height: 607px;
+}
+
+.digital-human .speak-logo {
+  position: absolute;
+  width: 121px;
+  height: 42px;
+  top: 849px;
+  left: 1192px;
+}
+
+.digital-human .main-heading {
+  position: absolute;
+  top: 165px;
+  left: 1138px;
+  text-shadow: -1px 1px 17px #da9c92;
+  font-family: "Poppins-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #da9c92;
+  font-size: 26.4px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.digital-human .me-talking {
+  position: absolute;
+  width: 242px;
+  height: 84px;
+  top: 712px;
+  left: 1133px;
+}
+
+.digital-human .div {
+  position: relative;
+  width: 240px;
+  height: 84px;
+  background-color: #f6e7e1;
+  border-radius: 8px;
+}
+
+.digital-human .text-wrapper {
+  position: absolute;
+  width: 72px;
+  top: 10px;
+  left: 11px;
+  font-family: "Poppins-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #da9c92;
+  font-size: 16.5px;
+  letter-spacing: -0.49px;
+  line-height: normal;
+}
+
+.digital-human .xing-talking {
+  position: absolute;
+  width: 244px;
+  height: 84px;
+  top: 615px;
+  left: 1133px;
+}
+
+.digital-human .xing-reply-text {
+  position: absolute;
+  width: 214px;
+  top: 37px;
+  left: 11px;
+  font-family: "Poppins-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #da9c92;
+  font-size: 12px;
+  letter-spacing: -0.36px;
+  line-height: normal;
+}
+
+.digital-human .cooking {
+  position: absolute;
+  width: 1095px;
+  height: 820px;
+  top: 127px;
+  left: 10px;
+}
+
+.digital-human .cooking-text-wrapper {
+  position: relative;
+  width: 1118px;
+  height: 820px;
+  background-image: url(./img/go-to-cooking.png);
+  background-size: cover;
+  background-position: 50% 50%;
+}
+
+.digital-human .cooking-text {
+  position: absolute;
+  width: 137px;
+  top: 656px;
+  left: 55px;
+  font-family: "Poppins-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #ffffff80;
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: -0.42px;
+  line-height: normal;
+}
+
+.digital-human .eating {
+  position: absolute;
+  width: 1094px;
+  height: 819px;
+  top: 127px;
+  left: 10px;
+}
+
+.digital-human .eating-text-wrapper {
+  position: relative;
+  width: 1117px;
+  height: 820px;
+  background-image: url(./img/go-to-eating.png);
+  background-size: cover;
+  background-position: 50% 50%;
+}
+
+.digital-human .eating-text {
+  position: absolute;
+  width: 137px;
+  top: 553px;
+  left: 583px;
+  font-family: "Poppins-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #ffffff80;
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: -0.42px;
+  line-height: normal;
+}
+
+.digital-human .by-me {
+  position: absolute;
+  width: 137px;
+  top: 916px;
+  left: 0;
+  font-family: "Poppins-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #ffffff80;
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: -0.42px;
+  line-height: normal;
+}
