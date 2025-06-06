@@ -46,17 +46,6 @@
       .chat-bubble.bot {
         align-self: flex-start;
       }
-      
-      /* 新增的视频过渡效果 */
-      .for-videos {
-        transition: opacity 0.5s ease-in-out;
-      }
-      .video-fade-out {
-        opacity: 0;
-      }
-      .video-fade-in {
-        opacity: 1;
-      }
     </style>
   </head>
   <body>
@@ -109,7 +98,7 @@
       let messages = [
         {
           role: "system",
-          content: "你是"星星"，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
+          content: "你是“星星”，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
         }
       ];
 
@@ -191,28 +180,13 @@
         } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
           newSrc = "img/shrug.mp4";
         }
-        
-        // 只有在情绪变化时才切换视频
-        if (avatar.querySelector('source').src !== newSrc) {
-          switchVideo(newSrc);
-        }
-      }
 
-      function switchVideo(newSrc) {
-        avatar.classList.add('video-fade-out');
-        
-        setTimeout(() => {
+        if (avatar.querySelector('source').src !== newSrc) {
           avatar.pause();
           avatar.querySelector('source').src = newSrc;
           avatar.load();
           avatar.play();
-          avatar.classList.remove('video-fade-out');
-          avatar.classList.add('video-fade-in');
-          
-          setTimeout(() => {
-            avatar.classList.remove('video-fade-in');
-          }, 500);
-        }, 500);
+        }
       }
 
       function speakText(text) {
@@ -221,22 +195,6 @@
         utterance.pitch = 1.1;
         utterance.rate = 1.0;
         utterance.volume = 1;
-        
-        // 语音开始时切换到对应情绪视频
-        utterance.onstart = function() {
-          if (avatar.querySelector('source').src.includes('relaxed.mp4')) {
-            return; // 已经是放松状态则不切换
-          }
-          // 保留当前情绪视频直到语音结束
-        };
-        
-        // 语音结束时切换回relaxed.mp4
-        utterance.onend = function() {
-          if (!avatar.querySelector('source').src.includes('relaxed.mp4')) {
-            switchVideo("img/relaxed.mp4");
-          }
-        };
-        
         speechSynthesis.speak(utterance);
       }
     </script>
