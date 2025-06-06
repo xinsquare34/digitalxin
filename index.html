@@ -171,59 +171,32 @@
         return reply;
       }
 
-      let currentEmotionVideo = "";
-function handleAvatarAction(replyText) {
-  if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
-    currentEmotionVideo = "img/happy.mp4";
-  } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
-    currentEmotionVideo = "img/bow.mp4";
-  } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
-    currentEmotionVideo = "img/shrug.mp4";
-  } else {
-    currentEmotionVideo = "img/relaxed.mp4";
-  }
-}
+      function handleAvatarAction(replyText) {
+        let newSrc = "img/relaxed.mp4";
+        if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
+          newSrc = "img/happy.mp4";
+        } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
+          newSrc = "img/bow.mp4";
+        } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
+          newSrc = "img/shrug.mp4";
+        }
 
-function switchAvatarVideo(src) {
-  const video = avatar;
-  const source = video.querySelector('source');
-  if (source.getAttribute('src') === src) return;
-  const wasPlaying = !video.paused;
-  video.pause();
-  source.setAttribute('src', src);
-  video.load();
-  if (wasPlaying) video.play();
-}
-
-function speakText(text) {text) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'zh-CN';
-  utterance.pitch = 1.1;
-  utterance.rate = 1.0;
-  utterance.volume = 1;
-
-  utterance.onstart = () => {
-    if (currentEmotionVideo && avatar.querySelector('source').src !== currentEmotionVideo) {
-      switchAvatarVideo(currentEmotionVideo);
-    }
-  };
-
-  utterance.onend = () => {
-    switchAvatarVideo("img/relaxed.mp4");
-  };
-
-  speechSynthesis.speak(utterance);
+        if (avatar.querySelector('source').src !== newSrc) {
+          avatar.pause();
+          avatar.querySelector('source').src = newSrc;
+          avatar.load();
+          avatar.play();
+        }
       }
-    function switchAvatarVideo(src) {
-  const video = avatar;
-  const source = video.querySelector('source');
-  if (source.getAttribute('src') === src) return;
-  const wasPlaying = !video.paused;
-  video.pause();
-  source.setAttribute('src', src);
-  video.load();
-  if (wasPlaying) video.play();
-}
-</script>
+
+      function speakText(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.pitch = 1.1;
+        utterance.rate = 1.0;
+        utterance.volume = 1;
+        speechSynthesis.speak(utterance);
+      }
+    </script>
   </body>
 </html>
