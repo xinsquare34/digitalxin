@@ -1,5 +1,5 @@
 .digital-human {
-  background-color: #ffffff;
+  background-color: #f3e3dd;
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -7,7 +7,7 @@
 }
 
 .digital-human .overlap-wrapper {
-  background-color: #ffffff;
+  background-color: #f3e3dd;
   overflow: hidden;
   width: 1440px;
   height: 820px;
