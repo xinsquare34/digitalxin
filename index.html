@@ -182,26 +182,20 @@ function handleAvatarAction(replyText) {
   } else {
     currentEmotionVideo = "img/relaxed.mp4";
   }
-}else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
-    currentEmotionVideo = "img/shrug.mp4";
-  } else {
-    currentEmotionVideo = "img/relaxed.mp4";
-  }
-} else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
-          newSrc = "img/bow.mp4";
-        } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
-          newSrc = "img/shrug.mp4";
-        }
+}
 
-        if (avatar.querySelector('source').src !== newSrc) {
-          avatar.pause();
-          avatar.querySelector('source').src = newSrc;
-          avatar.load();
-          avatar.play();
-        }
-      }
+function switchAvatarVideo(src) {
+  const video = avatar;
+  const source = video.querySelector('source');
+  if (source.getAttribute('src') === src) return;
+  const wasPlaying = !video.paused;
+  video.pause();
+  source.setAttribute('src', src);
+  video.load();
+  if (wasPlaying) video.play();
+}
 
-      function speakText(text) {
+function speakText(text) {text) {
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = 'zh-CN';
   utterance.pitch = 1.1;
