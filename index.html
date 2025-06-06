@@ -171,32 +171,45 @@
         return reply;
       }
 
-      function handleAvatarAction(replyText) {
-        let newSrc = "img/relaxed.mp4";
-        if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
-          newSrc = "img/happy.mp4";
-        } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
-          newSrc = "img/bow.mp4";
-        } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
-          newSrc = "img/shrug.mp4";
-        }
+  function handleAvatarAction(replyText) {
+    let newSrc = "img/relaxed.mp4";
+    if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
+      newSrc = "img/happy.mp4";
+    } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
+      newSrc = "img/bow.mp4";
+    } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
+      newSrc = "img/shrug.mp4";
+    }
+    return newSrc; // 返回视频路径而不是直接设置
+  }
 
-        if (avatar.querySelector('source').src !== newSrc) {
-          avatar.pause();
-          avatar.querySelector('source').src = newSrc;
-          avatar.load();
-          avatar.play();
-        }
-      }
+  function speakText(text) {
+    const newSrc = handleAvatarAction(text);
+    if (avatar.querySelector('source').src !== newSrc) {
+      avatar.pause();
+      avatar.querySelector('source').src = newSrc;
+      avatar.load();
+      avatar.play();
+    }
 
-      function speakText(text) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'zh-CN';
-        utterance.pitch = 1.1;
-        utterance.rate = 1.0;
-        utterance.volume = 1;
-        speechSynthesis.speak(utterance);
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'zh-CN';
+    utterance.pitch = 1.1;
+    utterance.rate = 1.0;
+    utterance.volume = 1;
+    
+    // 语音结束时切换回relaxed状态
+    utterance.onend = function() {
+      if (avatar.querySelector('source').src !== "img/relaxed.mp4") {
+        avatar.pause();
+        avatar.querySelector('source').src = "img/relaxed.mp4";
+        avatar.load();
+        avatar.play();
       }
+    };
+    
+    speechSynthesis.speak(utterance);
+  }
     </script>
   </body>
 </html>
