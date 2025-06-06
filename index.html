@@ -46,6 +46,11 @@
       .chat-bubble.bot {
         align-self: flex-start;
       }
+      
+      /* 添加视频过渡效果 */
+      #avatar {
+        transition: opacity 0.3s ease;
+      }
     </style>
   </head>
   <body>
@@ -89,6 +94,24 @@
       const speakBtn = document.getElementById('speakBtn');
       const chatLog = document.getElementById('chatLog');
 
+      // 预加载所有视频资源
+      const videoSources = {
+        relaxed: "img/relaxed.mp4",
+        happy: "img/happy.mp4",
+        bow: "img/bow.mp4",
+        shrug: "img/shrug.mp4"
+      };
+
+      // 页面加载时预加载视频
+      function preloadVideos() {
+        Object.values(videoSources).forEach(src => {
+          const video = document.createElement('video');
+          video.src = src;
+          video.preload = 'auto';
+        });
+      }
+      window.addEventListener('load', preloadVideos);
+
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       recognition.lang = 'zh-CN';
@@ -98,7 +121,7 @@
       let messages = [
         {
           role: "system",
-          content: "你是“星星”，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
+          content: "你是"星星"，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
         }
       ];
 
@@ -118,8 +141,7 @@
 
         const botReply = await getXingxingReply(userText);
         addChatBubble('bot', botReply);
-        speakText(botReply);
-        handleAvatarAction(botReply);
+        await speakText(botReply);
       };
 
       function addChatBubble(sender, text) {
@@ -171,45 +193,70 @@
         return reply;
       }
 
-  function handleAvatarAction(replyText) {
-    let newSrc = "img/relaxed.mp4";
-    if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
-      newSrc = "img/happy.mp4";
-    } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
-      newSrc = "img/bow.mp4";
-    } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
-      newSrc = "img/shrug.mp4";
-    }
-    return newSrc; // 返回视频路径而不是直接设置
-  }
-
-  function speakText(text) {
-    const newSrc = handleAvatarAction(text);
-    if (avatar.querySelector('source').src !== newSrc) {
-      avatar.pause();
-      avatar.querySelector('source').src = newSrc;
-      avatar.load();
-      avatar.play();
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'zh-CN';
-    utterance.pitch = 1.1;
-    utterance.rate = 1.1;
-    utterance.volume = 1;
-    
-    // 语音结束时切换回relaxed状态
-    utterance.onend = function() {
-      if (avatar.querySelector('source').src !== "img/relaxed.mp4") {
-        avatar.pause();
-        avatar.querySelector('source').src = "img/relaxed.mp4";
-        avatar.load();
-        avatar.play();
+      function handleAvatarAction(replyText) {
+        if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
+          return videoSources.happy;
+        } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
+          return videoSources.bow;
+        } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
+          return videoSources.shrug;
+        }
+        return videoSources.relaxed;
       }
-    };
-    
-    speechSynthesis.speak(utterance);
-  }
+
+      async function switchVideo(newSrc) {
+        return new Promise((resolve) => {
+          if (avatar.querySelector('source').src.endsWith(newSrc)) {
+            resolve();
+            return;
+          }
+
+          // 淡出当前视频
+          avatar.style.opacity = '0';
+
+          setTimeout(async () => {
+            avatar.pause();
+            avatar.querySelector('source').src = newSrc;
+            avatar.load();
+            
+            const playPromise = avatar.play();
+            
+            if (playPromise !== undefined) {
+              playPromise.then(() => {
+                // 淡入新视频
+                avatar.style.opacity = '1';
+                resolve();
+              }).catch(error => {
+                console.log("自动播放被阻止，尝试静音播放:", error);
+                avatar.muted = true;
+                avatar.play().then(() => {
+                  avatar.style.opacity = '1';
+                  resolve();
+                });
+              });
+            }
+          }, 300);
+        });
+      }
+
+      async function speakText(text) {
+        const newSrc = handleAvatarAction(text);
+        await switchVideo(newSrc);
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.pitch = 1.1;
+        utterance.rate = 1.0;
+        utterance.volume = 1;
+        
+        utterance.onend = async function() {
+          if (!avatar.querySelector('source').src.endsWith("relaxed.mp4")) {
+            await switchVideo(videoSources.relaxed);
+          }
+        };
+        
+        speechSynthesis.speak(utterance);
+      }
     </script>
   </body>
 </html>
