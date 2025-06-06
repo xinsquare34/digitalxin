@@ -25,7 +25,7 @@
   position: absolute;
   width: 1092px;
   height: 819px;
-  top: 127px;
+  top: 117px;
   left: 0px;
   object-fit: cover;
 }
@@ -145,14 +145,14 @@
 width: 1118px;
 position: absolute;
 height: 820px;
-top: 127px;
+top: 117px;
 left: 0px;
 object-fit: cover;
 }
 .digital-human .cooking-text {
 position: absolute;
 width: 137px;
-top: 782px;
+top: 772px;
 left: 65px;
 font-family: "Poppins-SemiBold", Helvetica;
 font-weight: 600;
@@ -166,7 +166,7 @@ line-height: normal;
 width: 1117px;
 position: absolute;
 height: 820px;
-top: 127px;
+top: 117px;
 left: 0px;
 object-fit: cover;
 }
@@ -174,7 +174,7 @@ object-fit: cover;
 .digital-human .eating-text {
   position: absolute;
   width: 137px;
-  top: 679px;
+  top: 669px;
   left: 593px;
   font-family: "Poppins-SemiBold", Helvetica;
   font-weight: 600;
