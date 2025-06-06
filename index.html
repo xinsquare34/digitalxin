@@ -28,7 +28,7 @@
         color: #da9c92;
         font-family: "Poppins-SemiBold", Helvetica;
         font-weight: 600;
-        font-size: 17px;
+        font-size: 12px;
         letter-spacing: -0.36px;
         word-break: break-word;
       }
@@ -100,12 +100,12 @@
       speakBtn.addEventListener('mousedown', () => {
         speakBtn.src = 'img/recording-text.png';
         recognition.start();
-      }););
+      });
 
       speakBtn.addEventListener('mouseup', () => {
         speakBtn.src = 'img/speak-logo.png';
         recognition.stop();
-      }););
+      });
 
       recognition.onresult = async (event) => {
         const userText = event.results[0][0].transcript;
