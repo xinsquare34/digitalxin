@@ -8,6 +8,11 @@
     <link rel="stylesheet" href="globals.css" />
     <link rel="stylesheet" href="style.css" />
     <style>
+      .speak-logo {
+        -webkit-user-drag: none;
+        user-select: none;
+        cursor: pointer;
+      }
       .chat-log {
         position: absolute;
         top: 240px;
@@ -61,7 +66,7 @@
             </div>
           </div>
 
-          <img class="speak-logo" src="img/speak-logo.png" id="speakBtn" />
+          <img class="speak-logo" src="img/speak-logo.png" id="speakBtn" draggable="false" ondragstart="return false;" />
           <div class="main-heading">星星 - 你的AI餐伴</div>
 
           <div class="chat-log" id="chatLog">
