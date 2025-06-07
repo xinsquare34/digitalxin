@@ -169,11 +169,11 @@
   function handleAvatarAction(replyText) {
     let newSrc = "img/eating-relaxed.mp4";
     if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
-      newSrc = "img/happy.mp4";
+      newSrc = "img/eating-happy.mp4";
     } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
-      newSrc = "img/bow.mp4";
+      newSrc = "img/eating-bow.mp4";
     } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
-      newSrc = "img/shrug.mp4";
+      newSrc = "img/eating-shrug.mp4";
     }
     return newSrc; // 返回视频路径而不是直接设置
   }
