@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <title>星星 - AI餐伴</title>
+    <link rel="icon" href="img/favicon.png" type="image/png">
+    <link rel="stylesheet" href="globals.css" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .speak-logo {
+        -webkit-user-drag: none;
+        user-select: none;
+        cursor: pointer;
+      }
+      .chat-log {
+        position: absolute;
+        top: 240px;
+        left: 1122px;
+        width: 270px;
+        height: 560px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-right: 6px;
+      }
+
+      .chat-bubble {
+        background-color: #f6e7e1;
+        border-radius: 8px;
+        padding: 8px 12px;
+        color: #da9c92;
+        font-family: "Poppins-SemiBold", Helvetica;
+        font-weight: 600;
+        font-size: 17px;
+        letter-spacing: -0.36px;
+        word-break: break-word;
+      }
+
+      .chat-bubble.user {
+        align-self: flex-end;
+        background-color: #fbdad2;
+      }
+
+      .chat-bubble.bot {
+        align-self: flex-start;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="digital-human">
+      <div class="overlap-wrapper">
+        <div class="overlap">
+          <video id="avatar" class="for-eat-videos" autoplay muted loop playsinline>
+            <source src="img/eating-relaxed.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+
+          <div class="text-background"></div>
+
+          <div class="text-box-group">
+            <div class="overlap-group">
+              <div class="text-box"></div>
+              <img class="text-box-outline" src="img/text-box-outline.svg" />
+            </div>
+          </div>
+
+          <img class="speak-logo" src="img/speak-logo.png" id="speakBtn" draggable="false" ondragstart="return false;" />
+          <div class="main-heading">星星 - 你的AI餐伴</div>
+
+          <div class="chat-log" id="chatLog">
+            <div class="chat-bubble bot">你好，我是你的餐伴星星。<br />你可以随时和我聊天哦～</div>
+          </div>
+
+          <div class="by-me">By: LIU XINXIN</div>
+          <img class="back-logo" src="img/back-logo.png"/>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const avatar = document.getElementById('avatar');
+      const speakBtn = document.getElementById('speakBtn');
+      const chatLog = document.getElementById('chatLog');
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'zh-CN';
+
+      let isCalling = false;
+
+      let messages = [
+        {
+          role: "system",
+          content: "你是“星星”，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
+        }
+      ];
+
+      speakBtn.addEventListener('mousedown', () => {
+        speakBtn.src = 'img/recording-text.png';
+        recognition.start();
+      });
+
+      speakBtn.addEventListener('mouseup', () => {
+        speakBtn.src = 'img/speak-logo.png';
+        recognition.stop();
+      });
+
+      recognition.onresult = async (event) => {
+        const userText = event.results[0][0].transcript;
+        addChatBubble('user', userText);
+
+        const botReply = await getXingxingReply(userText);
+        addChatBubble('bot', botReply);
+        speakText(botReply);
+        handleAvatarAction(botReply);
+      };
+
+      function addChatBubble(sender, text) {
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${sender}`;
+        bubble.textContent = text;
+        chatLog.appendChild(bubble);
+        chatLog.scrollTop = chatLog.scrollHeight;
+      }
+
+      async function getXingxingReply(userInput) {
+        if (isCalling) {
+          console.warn("请稍后再试，限流中...");
+          return "（星星正在思考中…）";
+        }
+        isCalling = true;
+
+        messages.push({ role: "user", content: userInput });
+        if (messages.length > 21) {
+          messages = [messages[0], ...messages.slice(-20)];
+        }
+
+        const apiKey = "sk-0e19faf29ca241e4bab6264a0536232b";
+        const endpoint = "https://api.deepseek.com/v1/chat/completions";
+
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: "deepseek-chat",
+            messages: messages,
+            temperature: 0.8
+          })
+        });
+
+        isCalling = false;
+
+        if (response.status === 429) {
+          console.error("429 Too Many Requests");
+          return "（星星累了，稍后再聊好嘛～）";
+        }
+
+        const data = await response.json();
+        const reply = data.choices[0]?.message?.content?.trim() || "（星星有点走神了呢…）";
+        messages.push({ role: "assistant", content: reply });
+        return reply;
+      }
+
+  function handleAvatarAction(replyText) {
+    let newSrc = "img/eating-relaxed.mp4";
+    if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
+      newSrc = "img/happy.mp4";
+    } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
+      newSrc = "img/bow.mp4";
+    } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
+      newSrc = "img/shrug.mp4";
+    }
+    return newSrc; // 返回视频路径而不是直接设置
+  }
+
+  function speakText(text) {
+    const newSrc = handleAvatarAction(text);
+    if (avatar.querySelector('source').src !== newSrc) {
+      avatar.pause();
+      avatar.querySelector('source').src = newSrc;
+      avatar.load();
+      avatar.play();
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'zh-CN';
+    utterance.pitch = 1.1;
+    utterance.rate = 1.1;
+    utterance.volume = 1;
+    
+    // 语音结束时切换回relaxed状态
+    utterance.onend = function() {
+      if (avatar.querySelector('source').src !== "img/eating-relaxed.mp4") {
+        avatar.pause();
+        avatar.querySelector('source').src = "img/eating-relaxed.mp4";
+        avatar.load();
+        avatar.play();
+      }
+    };
+    
+    speechSynthesis.speak(utterance);
+  }
+    </script>
+  </body>
+</html>
