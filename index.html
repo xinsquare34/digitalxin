@@ -46,6 +46,15 @@
       .chat-bubble.bot {
         align-self: flex-start;
       }
+      
+      /* 添加用餐按钮的悬停效果 */
+      .eating-text {
+        cursor: pointer;
+        transition: color 0.3s ease;
+      }
+      .eating-text:hover {
+        color: #da9c92;
+      }
     </style>
   </head>
   <body>
@@ -73,8 +82,8 @@
             <div class="chat-bubble bot">你好，我是你的餐伴星星。<br />你可以随时和我聊天哦～</div>
           </div>
 
-          <img class="go-to-eating" src="img/go-to-eating.png" />
-          <div class="eating-text">用餐陪伴点这里</div>
+          <img class="go-to-eating" src="img/go-to-eating.png" id="eatingBtn" />
+          <div class="eating-text" id="eatingText">用餐陪伴点这里</div>
 
           <div class="by-me">By: LIU XINXIN</div>
         </div>
@@ -85,6 +94,23 @@
       const avatar = document.getElementById('avatar');
       const speakBtn = document.getElementById('speakBtn');
       const chatLog = document.getElementById('chatLog');
+      const eatingBtn = document.getElementById('eatingBtn');
+      const eatingText = document.getElementById('eatingText');
+
+      // 用餐按钮点击事件
+      function setupEatingButton() {
+        // 为图片和文字都添加点击事件
+        eatingBtn.addEventListener('click', goToEatingPage);
+        eatingText.addEventListener('click', goToEatingPage);
+        
+        // 添加悬停效果
+        eatingBtn.style.cursor = 'pointer';
+      }
+
+      // 跳转到用餐页面
+      function goToEatingPage() {
+        window.location.href = 'eating.html';
+      }
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
@@ -95,19 +121,24 @@
       let messages = [
         {
           role: "system",
-          content: "你是“星星”，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
+          content: "你是"星星"，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
         }
       ];
 
-      speakBtn.addEventListener('mousedown', () => {
-        speakBtn.src = 'img/recording-text.png';
-        recognition.start();
-      });
+      // 初始化
+      function init() {
+        setupEatingButton();
+        
+        speakBtn.addEventListener('mousedown', () => {
+          speakBtn.src = 'img/recording-text.png';
+          recognition.start();
+        });
 
-      speakBtn.addEventListener('mouseup', () => {
-        speakBtn.src = 'img/speak-logo.png';
-        recognition.stop();
-      });
+        speakBtn.addEventListener('mouseup', () => {
+          speakBtn.src = 'img/speak-logo.png';
+          recognition.stop();
+        });
+      }
 
       recognition.onresult = async (event) => {
         const userText = event.results[0][0].transcript;
@@ -168,45 +199,47 @@
         return reply;
       }
 
-  function handleAvatarAction(replyText) {
-    let newSrc = "img/relaxed.mp4";
-    if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
-      newSrc = "img/happy.mp4";
-    } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
-      newSrc = "img/bow.mp4";
-    } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
-      newSrc = "img/shrug.mp4";
-    }
-    return newSrc; // 返回视频路径而不是直接设置
-  }
-
-  function speakText(text) {
-    const newSrc = handleAvatarAction(text);
-    if (avatar.querySelector('source').src !== newSrc) {
-      avatar.pause();
-      avatar.querySelector('source').src = newSrc;
-      avatar.load();
-      avatar.play();
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'zh-CN';
-    utterance.pitch = 1.1;
-    utterance.rate = 1.1;
-    utterance.volume = 1;
-    
-    // 语音结束时切换回relaxed状态
-    utterance.onend = function() {
-      if (avatar.querySelector('source').src !== "img/relaxed.mp4") {
-        avatar.pause();
-        avatar.querySelector('source').src = "img/relaxed.mp4";
-        avatar.load();
-        avatar.play();
+      function handleAvatarAction(replyText) {
+        let newSrc = "img/relaxed.mp4";
+        if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
+          newSrc = "img/happy.mp4";
+        } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
+          newSrc = "img/bow.mp4";
+        } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
+          newSrc = "img/shrug.mp4";
+        }
+        return newSrc;
       }
-    };
-    
-    speechSynthesis.speak(utterance);
-  }
+
+      function speakText(text) {
+        const newSrc = handleAvatarAction(text);
+        if (avatar.querySelector('source').src !== newSrc) {
+          avatar.pause();
+          avatar.querySelector('source').src = newSrc;
+          avatar.load();
+          avatar.play();
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.pitch = 1.1;
+        utterance.rate = 1.1;
+        utterance.volume = 1;
+        
+        utterance.onend = function() {
+          if (avatar.querySelector('source').src !== "img/relaxed.mp4") {
+            avatar.pause();
+            avatar.querySelector('source').src = "img/relaxed.mp4";
+            avatar.load();
+            avatar.play();
+          }
+        };
+        
+        speechSynthesis.speak(utterance);
+      }
+
+      // 页面加载完成后初始化
+      window.addEventListener('DOMContentLoaded', init);
     </script>
   </body>
 </html>
