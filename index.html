@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta charset="utf-8" />
     <title>星星 - AI餐伴</title>
-    <link rel="icon" href="img/favicon.png" type="image/png">
+    <link rel="icon" href="img/favicon.png" type="image/png" />
     <link rel="stylesheet" href="globals.css" />
     <link rel="stylesheet" href="style.css" />
     <style>
@@ -51,7 +51,6 @@
       .for-videos {
         width: 100%;
         height: auto;
-        transition: opacity 0.6s ease-in-out;
         position: absolute;
         top: 0;
         left: 0;
@@ -62,11 +61,11 @@
     <div class="digital-human">
       <div class="overlap-wrapper">
         <div class="overlap">
-          <!-- 两个 video 叠层 -->
-          <video id="avatar" class="for-videos" autoplay muted loop playsinline preload="auto" style="opacity: 1;">
+          <!-- 双视频结构 -->
+          <video id="avatar" class="for-videos" autoplay muted playsinline preload="auto" style="opacity: 1;">
             <source src="img/relaxed.mp4" type="video/mp4" />
           </video>
-          <video id="avatar2" class="for-videos" autoplay muted loop playsinline preload="auto" style="opacity: 0;">
+          <video id="avatar2" class="for-videos" autoplay muted playsinline preload="auto" style="opacity: 0;">
             <source src="img/relaxed.mp4" type="video/mp4" />
           </video>
 
@@ -79,7 +78,7 @@
             </div>
           </div>
 
-          <img class="speak-logo" src="img/speak-logo.png" id="speakBtn" draggable="false" ondragstart="return false;" />
+          <img class="speak-logo" src="img/speak-logo.png" id="speakBtn" draggable="false" />
           <div class="main-heading">星星 - 你的AI餐伴</div>
 
           <div class="chat-log" id="chatLog">
@@ -94,14 +93,14 @@
     </div>
 
     <script>
-      const avatar1 = document.getElementById('avatar');
-      const avatar2 = document.getElementById('avatar2');
-      const speakBtn = document.getElementById('speakBtn');
-      const chatLog = document.getElementById('chatLog');
+      const avatar1 = document.getElementById("avatar");
+      const avatar2 = document.getElementById("avatar2");
+      const speakBtn = document.getElementById("speakBtn");
+      const chatLog = document.getElementById("chatLog");
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
-      recognition.lang = 'zh-CN';
+      recognition.lang = "zh-CN";
 
       let isCalling = false;
 
@@ -112,27 +111,27 @@
         }
       ];
 
-      speakBtn.addEventListener('mousedown', () => {
-        speakBtn.src = 'img/recording-text.png';
+      speakBtn.addEventListener("mousedown", () => {
+        speakBtn.src = "img/recording-text.png";
         recognition.start();
       });
 
-      speakBtn.addEventListener('mouseup', () => {
-        speakBtn.src = 'img/speak-logo.png';
+      speakBtn.addEventListener("mouseup", () => {
+        speakBtn.src = "img/speak-logo.png";
         recognition.stop();
       });
 
       recognition.onresult = async (event) => {
         const userText = event.results[0][0].transcript;
-        addChatBubble('user', userText);
+        addChatBubble("user", userText);
 
         const botReply = await getXingxingReply(userText);
-        addChatBubble('bot', botReply);
+        addChatBubble("bot", botReply);
         speakText(botReply);
       };
 
       function addChatBubble(sender, text) {
-        const bubble = document.createElement('div');
+        const bubble = document.createElement("div");
         bubble.className = `chat-bubble ${sender}`;
         bubble.textContent = text;
         chatLog.appendChild(bubble);
@@ -199,30 +198,39 @@
         const current = avatar1.style.opacity === "1" || avatar1.style.opacity === "" ? avatar1 : avatar2;
         const next = current === avatar1 ? avatar2 : avatar1;
 
-        next.querySelector("source").src = newSrc;
+        const currentSource = current.querySelector("source");
+        const nextSource = next.querySelector("source");
+
+        // 准备切换新视频
+        next.pause();
+        nextSource.src = newSrc;
         next.load();
+
+        // 创建语音对象
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "zh-CN";
+        utterance.pitch = 1.1;
+        utterance.rate = 1.1;
 
         next.oncanplay = () => {
           next.style.opacity = "1";
           current.style.opacity = "0";
           next.play();
-
-          const utterance = new SpeechSynthesisUtterance(text);
-          utterance.lang = 'zh-CN';
-          utterance.pitch = 1.1;
-          utterance.rate = 1.1;
-
-          utterance.onend = () => {
-            current.querySelector("source").src = "img/relaxed.mp4";
-            current.load();
-            current.oncanplay = () => {
-              current.play();
-              current.style.opacity = "1";
-              next.style.opacity = "0";
-            };
-          };
-
+          speechSynthesis.cancel();
           speechSynthesis.speak(utterance);
+        };
+
+        utterance.onend = () => {
+          // 切回 relaxed.mp4
+          current.pause();
+          currentSource.src = "img/relaxed.mp4";
+          current.load();
+
+          current.oncanplay = () => {
+            current.play();
+            current.style.opacity = "1";
+            next.style.opacity = "0";
+          };
         };
       }
     </script>
