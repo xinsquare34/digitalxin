@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta charset="utf-8" />
     <title>星星 - AI餐伴</title>
-    <link rel="icon" href="img/favicon.png" type="image/png" />
+    <link rel="icon" href="img/favicon.png" type="image/png">
     <link rel="stylesheet" href="globals.css" />
     <link rel="stylesheet" href="style.css" />
     <style>
@@ -13,7 +13,6 @@
         user-select: none;
         cursor: pointer;
       }
-
       .chat-log {
         position: absolute;
         top: 240px;
@@ -47,49 +46,15 @@
       .chat-bubble.bot {
         align-self: flex-start;
       }
-
-      .video-layer {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: none;
-      }
-
-      .video-layer.show {
-        display: block;
-        z-index: 1;
-      }
     </style>
   </head>
   <body>
     <div class="digital-human">
       <div class="overlap-wrapper">
         <div class="overlap">
-
-          <!-- 预加载多个视频 -->
-          <video class="video-layer show" id="relaxed" autoplay muted loop playsinline>
+          <video id="avatar" class="for-videos" autoplay muted loop playsinline>
             <source src="img/relaxed.mp4" type="video/mp4" />
-          </video>
-          <video class="video-layer" id="talking" autoplay muted loop playsinline>
-            <source src="img/talking.mp4" type="video/mp4" />
-          </video>
-          <video class="video-layer" id="talking2" autoplay muted loop playsinline>
-            <source src="img/talking-2.mp4" type="video/mp4" />
-          </video>
-          <video class="video-layer" id="happy" autoplay muted loop playsinline>
-            <source src="img/happy.mp4" type="video/mp4" />
-          </video>
-          <video class="video-layer" id="bow" autoplay muted loop playsinline>
-            <source src="img/bow.mp4" type="video/mp4" />
-          </video>
-          <video class="video-layer" id="shrug" autoplay muted loop playsinline>
-            <source src="img/shrug.mp4" type="video/mp4" />
-          </video>
-          <video class="video-layer" id="teaching" autoplay muted loop playsinline>
-            <source src="img/teaching.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
           </video>
 
           <div class="text-background"></div>
@@ -113,6 +78,7 @@
     </div>
 
     <script>
+      const avatar = document.getElementById('avatar');
       const speakBtn = document.getElementById('speakBtn');
       const chatLog = document.getElementById('chatLog');
 
@@ -122,10 +88,12 @@
 
       let isCalling = false;
 
-      const messages = [{
-        role: "system",
-        content: "你是“星星”，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
-      }];
+      let messages = [
+        {
+          role: "system",
+          content: "你是“星星”，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
+        }
+      ];
 
       speakBtn.addEventListener('mousedown', () => {
         speakBtn.src = 'img/recording-text.png';
@@ -144,6 +112,7 @@
         const botReply = await getXingxingReply(userText);
         addChatBubble('bot', botReply);
         speakText(botReply);
+        handleAvatarAction(botReply);
       };
 
       function addChatBubble(sender, text) {
@@ -163,7 +132,7 @@
 
         messages.push({ role: "user", content: userInput });
         if (messages.length > 21) {
-          messages.splice(1, messages.length - 20);
+          messages = [messages[0], ...messages.slice(-20)];
         }
 
         const apiKey = "sk-0e19faf29ca241e4bab6264a0536232b";
@@ -185,6 +154,7 @@
         isCalling = false;
 
         if (response.status === 429) {
+          console.error("429 Too Many Requests");
           return "（星星累了，稍后再聊好嘛～）";
         }
 
@@ -194,48 +164,46 @@
         return reply;
       }
 
-      function speakText(text) {
-        const videoId = getVideoIdFromReply(text);
-        switchToVideo(videoId);
+  function handleAvatarAction(replyText) {
+    // 关键词检测优先
+    if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("太棒")) {
+      return "img/happy.mp4";
+    } else if (replyText.includes("谢谢")) {
+      return "img/bow.mp4";
+    } else if (replyText.includes("不知道") || replyText.includes("不清楚") || replyText.includes("不太清楚") || replyText.includes("不太在行") || replyText.includes("嘻嘻") || replyText.includes("帮不上忙")) {
+      return "img/shrug.mp4";
+    } else if (replyText.includes("推荐") || replyText.includes("简单")) {
+      return "img/teaching.mp4";
+    }
+    // 随机返回默认说话状态
+    return Math.random() > 0.5 ? "img/talking.mp4" : "img/talking-2.mp4";
+  }
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'zh-CN';
-        utterance.pitch = 1.1;
-        utterance.rate = 1.1;
+  function speakText(text) {
+    const newSrc = handleAvatarAction(text);
+    if (avatar.querySelector('source').src !== newSrc) {
+      avatar.pause();
+      avatar.querySelector('source').src = newSrc;
+      avatar.load();
+      avatar.play().catch(e => console.log("视频播放错误:", e));
+    }
 
-        utterance.onend = () => {
-          switchToVideo("relaxed");
-        };
-
-        speechSynthesis.speak(utterance);
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'zh-CN';
+    utterance.pitch = 1.1;
+    utterance.rate = 1.1;
+    
+    // 语音结束时切换回relaxed状态
+    utterance.onend = function() {
+      if (!avatar.querySelector('source').src.endsWith("relaxed.mp4")) {
+        avatar.querySelector('source').src = "img/relaxed.mp4";
+        avatar.load();
+        avatar.play().catch(e => console.log("视频恢复错误:", e));
       }
-
-      function getVideoIdFromReply(replyText) {
-        if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("太棒")) {
-          return "happy";
-        } else if (replyText.includes("谢谢")) {
-          return "bow";
-        } else if (replyText.includes("不知道") || replyText.includes("不清楚") || replyText.includes("不太在行") || replyText.includes("帮不上忙")) {
-          return "shrug";
-        } else if (replyText.includes("推荐") || replyText.includes("简单")) {
-          return "teaching";
-        } else {
-          return Math.random() > 0.5 ? "talking" : "talking2";
-        }
-      }
-
-      function switchToVideo(id) {
-        const videos = document.querySelectorAll(".video-layer");
-        videos.forEach(video => {
-          if (video.id === id) {
-            video.classList.add("show");
-            video.play().catch(e => console.warn("播放错误", e));
-          } else {
-            video.classList.remove("show");
-            video.pause();
-          }
-        });
-      }
+    };
+    
+    speechSynthesis.speak(utterance);
+  }
     </script>
   </body>
 </html>
