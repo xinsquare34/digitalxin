@@ -13,6 +13,7 @@
         user-select: none;
         cursor: pointer;
       }
+
       .chat-log {
         position: absolute;
         top: 240px;
@@ -46,26 +47,30 @@
       .chat-bubble.bot {
         align-self: flex-start;
       }
-      
-      /* 新增视频容器样式 */
+
       .video-container {
-        position: relative;
+        position: absolute;
         width: 100%;
         height: 100%;
+        overflow: hidden;
       }
-      
-      .video-layer {
+
+      .for-videos {
         position: absolute;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        transition: opacity 0.5s ease-in-out;
+        z-index: 0;
       }
-      
-      .video-layer.active {
-        opacity: 1;
+
+      #videoA {
+        z-index: 1;
+      }
+
+      #videoB {
+        z-index: 0;
       }
     </style>
   </head>
@@ -73,18 +78,16 @@
     <div class="digital-human">
       <div class="overlap-wrapper">
         <div class="overlap">
-          <!-- 修改视频部分为多层视频容器 -->
-          <div class="video-container" id="videoContainer">
-            <video class="video-layer" id="avatar1" autoplay muted loop playsinline>
+
+          <!-- 双视频容器 -->
+          <div class="video-container">
+            <video id="videoA" class="for-videos" autoplay muted loop playsinline>
               <source src="img/relaxed.mp4" type="video/mp4" />
             </video>
-            <video class="video-layer" id="avatar2" autoplay muted loop playsinline>
-              <source src="img/relaxed.mp4" type="video/mp4" />
-            </video>
+            <video id="videoB" class="for-videos" muted loop playsinline></video>
           </div>
 
           <div class="text-background"></div>
-
           <div class="text-box-group">
             <div class="overlap-group">
               <div class="text-box"></div>
@@ -104,38 +107,13 @@
     </div>
 
     <script>
-      // 视频元素和状态管理
-      const videoContainer = document.getElementById('videoContainer');
-      const avatars = [
-        document.getElementById('avatar1'),
-        document.getElementById('avatar2')
-      ];
-      let activeAvatarIndex = 0;
-      let nextAvatarIndex = 1;
-      
-      // 预加载所有视频
-      const videoSources = {
-        relaxed: 'img/relaxed.mp4',
-        happy: 'img/happy.mp4',
-        bow: 'img/bow.mp4',
-        shrug: 'img/shrug.mp4',
-        teaching: 'img/teaching.mp4',
-        talking: 'img/talking.mp4',
-        talking2: 'img/talking-2.mp4'
-      };
-      
-      // 预加载视频
-      function preloadVideos() {
-        Object.values(videoSources).forEach(src => {
-          const video = document.createElement('video');
-          video.src = src;
-        });
-      }
-      
-      preloadVideos();
-
       const speakBtn = document.getElementById('speakBtn');
       const chatLog = document.getElementById('chatLog');
+      const videoA = document.getElementById('videoA');
+      const videoB = document.getElementById('videoB');
+
+      let activeVideo = videoA;
+      let idleVideo = videoB;
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
@@ -146,7 +124,7 @@
       let messages = [
         {
           role: "system",
-          content: "你是"星星"，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
+          content: "你是“星星”，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
         }
       ];
 
@@ -179,7 +157,6 @@
 
       async function getXingxingReply(userInput) {
         if (isCalling) {
-          console.warn("请稍后再试，限流中...");
           return "（星星正在思考中…）";
         }
         isCalling = true;
@@ -189,14 +166,11 @@
           messages = [messages[0], ...messages.slice(-20)];
         }
 
-        const apiKey = "sk-0e19faf29ca241e4bab6264a0536232b";
-        const endpoint = "https://api.deepseek.com/v1/chat/completions";
-
-        const response = await fetch(endpoint, {
+        const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKey}`
+            "Authorization": `Bearer sk-0e19faf29ca241e4bab6264a0536232b`
           },
           body: JSON.stringify({
             model: "deepseek-chat",
@@ -208,7 +182,6 @@
         isCalling = false;
 
         if (response.status === 429) {
-          console.error("429 Too Many Requests");
           return "（星星累了，稍后再聊好嘛～）";
         }
 
@@ -218,71 +191,49 @@
         return reply;
       }
 
-      function getVideoSource(replyText) {
-        // 关键词检测优先
+      function getVideoSrc(replyText) {
         if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("太棒")) {
-          return videoSources.happy;
+          return "img/happy.mp4";
         } else if (replyText.includes("谢谢")) {
-          return videoSources.bow;
-        } else if (replyText.includes("不知道") || replyText.includes("不清楚") || replyText.includes("不太清楚") || replyText.includes("不太在行") || replyText.includes("嘻嘻") || replyText.includes("帮不上忙")) {
-          return videoSources.shrug;
+          return "img/bow.mp4";
+        } else if (replyText.includes("不知道") || replyText.includes("不清楚") || replyText.includes("帮不上忙")) {
+          return "img/shrug.mp4";
         } else if (replyText.includes("推荐") || replyText.includes("简单")) {
-          return videoSources.teaching;
+          return "img/teaching.mp4";
         }
-        // 随机返回默认说话状态
-        return Math.random() > 0.5 ? videoSources.talking : videoSources.talking2;
+        return Math.random() > 0.5 ? "img/talking.mp4" : "img/talking-2.mp4";
       }
 
-      function switchVideo(newSrc) {
-        // 获取下一个视频层
-        const nextAvatar = avatars[nextAvatarIndex];
-        const nextSource = nextAvatar.querySelector('source');
-        
-        // 如果已经是当前视频，不做切换
-        if (nextSource.src === newSrc) {
-          return;
-        }
-        
-        // 准备下一个视频层
-        nextSource.src = newSrc;
-        nextAvatar.load();
-        
-        // 当视频可以播放时切换
-        nextAvatar.oncanplay = () => {
-          nextAvatar.play().catch(e => console.log("视频播放错误:", e));
-          
-          // 切换活动视频层
-          avatars[activeAvatarIndex].classList.remove('active');
-          nextAvatar.classList.add('active');
-          
-          // 更新索引
-          activeAvatarIndex = nextAvatarIndex;
-          nextAvatarIndex = (nextAvatarIndex + 1) % 2;
-          
-          // 移除事件监听器
-          nextAvatar.oncanplay = null;
+      function swapVideos(newSrc) {
+        idleVideo.src = newSrc;
+        idleVideo.load();
+        idleVideo.oncanplay = () => {
+          idleVideo.play();
+          activeVideo.style.zIndex = 0;
+          idleVideo.style.zIndex = 1;
+
+          // 交换 video 的角色
+          [activeVideo, idleVideo] = [idleVideo, activeVideo];
         };
       }
 
       function speakText(text) {
-        const newSrc = getVideoSource(text);
-        switchVideo(newSrc);
+        const videoSrc = getVideoSrc(text);
+        if (!activeVideo.src.endsWith(videoSrc)) {
+          swapVideos(videoSrc);
+        }
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'zh-CN';
         utterance.pitch = 1.1;
         utterance.rate = 1.1;
-        
-        // 语音结束时切换回relaxed状态
-        utterance.onend = function() {
-          switchVideo(videoSources.relaxed);
+
+        utterance.onend = function () {
+          swapVideos("img/relaxed.mp4");
         };
-        
+
         speechSynthesis.speak(utterance);
       }
-      
-      // 初始化设置第一个视频为活动状态
-      avatars[0].classList.add('active');
     </script>
   </body>
 </html>
