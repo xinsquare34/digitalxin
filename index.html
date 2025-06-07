@@ -13,6 +13,7 @@
         user-select: none;
         cursor: pointer;
       }
+
       .chat-log {
         position: absolute;
         top: 240px;
@@ -46,15 +47,27 @@
       .chat-bubble.bot {
         align-self: flex-start;
       }
+
+      .for-videos {
+        width: 100%;
+        height: auto;
+        transition: opacity 0.6s ease-in-out;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
     </style>
   </head>
   <body>
     <div class="digital-human">
       <div class="overlap-wrapper">
         <div class="overlap">
-          <video id="avatar" class="for-videos" autoplay muted loop playsinline>
+          <!-- 两个 video 叠层 -->
+          <video id="avatar" class="for-videos" autoplay muted loop playsinline preload="auto" style="opacity: 1;">
             <source src="img/relaxed.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
+          </video>
+          <video id="avatar2" class="for-videos" autoplay muted loop playsinline preload="auto" style="opacity: 0;">
+            <source src="img/relaxed.mp4" type="video/mp4" />
           </video>
 
           <div class="text-background"></div>
@@ -75,14 +88,14 @@
 
           <img class="go-to-eating" src="img/go-to-eating.png" />
           <div class="eating-text">用餐陪伴点这里</div>
-
           <div class="by-me">By: LIU XINXIN</div>
         </div>
       </div>
     </div>
 
     <script>
-      const avatar = document.getElementById('avatar');
+      const avatar1 = document.getElementById('avatar');
+      const avatar2 = document.getElementById('avatar2');
       const speakBtn = document.getElementById('speakBtn');
       const chatLog = document.getElementById('chatLog');
 
@@ -116,7 +129,6 @@
         const botReply = await getXingxingReply(userText);
         addChatBubble('bot', botReply);
         speakText(botReply);
-        handleAvatarAction(botReply);
       };
 
       function addChatBubble(sender, text) {
@@ -168,46 +180,51 @@
         return reply;
       }
 
-  function handleAvatarAction(replyText) {
-    // 关键词检测优先
-    if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("太棒")) {
-      return "img/happy.mp4";
-    } else if (replyText.includes("谢谢")) {
-      return "img/bow.mp4";
-    } else if (replyText.includes("不知道") || replyText.includes("不清楚") || replyText.includes("不太清楚") || replyText.includes("不太在行") || replyText.includes("嘻嘻") || replyText.includes("帮不上忙")) {
-      return "img/shrug.mp4";
-    } else if (replyText.includes("推荐") || replyText.includes("简单")) {
-      return "img/teaching.mp4";
-    }
-    // 随机返回默认说话状态
-    return Math.random() > 0.5 ? "img/talking.mp4" : "img/talking-2.mp4";
-  }
-
-  function speakText(text) {
-    const newSrc = handleAvatarAction(text);
-    if (avatar.querySelector('source').src !== newSrc) {
-      avatar.pause();
-      avatar.querySelector('source').src = newSrc;
-      avatar.load();
-      avatar.play().catch(e => console.log("视频播放错误:", e));
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'zh-CN';
-    utterance.pitch = 1.1;
-    utterance.rate = 1.1;
-    
-    // 语音结束时切换回relaxed状态
-    utterance.onend = function() {
-      if (!avatar.querySelector('source').src.endsWith("relaxed.mp4")) {
-        avatar.querySelector('source').src = "img/relaxed.mp4";
-        avatar.load();
-        avatar.play().catch(e => console.log("视频恢复错误:", e));
+      function handleAvatarAction(replyText) {
+        if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("太棒")) {
+          return "img/happy.mp4";
+        } else if (replyText.includes("谢谢")) {
+          return "img/bow.mp4";
+        } else if (replyText.includes("不知道") || replyText.includes("不清楚") || replyText.includes("不太清楚") || replyText.includes("不太在行") || replyText.includes("嘻嘻") || replyText.includes("帮不上忙")) {
+          return "img/shrug.mp4";
+        } else if (replyText.includes("推荐") || replyText.includes("简单")) {
+          return "img/teaching.mp4";
+        }
+        return Math.random() > 0.5 ? "img/talking.mp4" : "img/talking-2.mp4";
       }
-    };
-    
-    speechSynthesis.speak(utterance);
-  }
+
+      function speakText(text) {
+        const newSrc = handleAvatarAction(text);
+
+        const current = avatar1.style.opacity === "1" || avatar1.style.opacity === "" ? avatar1 : avatar2;
+        const next = current === avatar1 ? avatar2 : avatar1;
+
+        next.querySelector("source").src = newSrc;
+        next.load();
+
+        next.oncanplay = () => {
+          next.style.opacity = "1";
+          current.style.opacity = "0";
+          next.play();
+
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'zh-CN';
+          utterance.pitch = 1.1;
+          utterance.rate = 1.1;
+
+          utterance.onend = () => {
+            current.querySelector("source").src = "img/relaxed.mp4";
+            current.load();
+            current.oncanplay = () => {
+              current.play();
+              current.style.opacity = "1";
+              next.style.opacity = "0";
+            };
+          };
+
+          speechSynthesis.speak(utterance);
+        };
+      }
     </script>
   </body>
 </html>
