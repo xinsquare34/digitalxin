@@ -54,6 +54,8 @@
         position: absolute;
         top: 0;
         left: 0;
+        object-fit: cover;
+        transition: opacity 0.3s ease;
       }
     </style>
   </head>
@@ -62,12 +64,8 @@
       <div class="overlap-wrapper">
         <div class="overlap">
           <!-- 双视频结构 -->
-          <video id="avatar" class="for-videos" autoplay muted playsinline preload="auto" loop style="opacity: 1;">
-            <source src="img/relaxed.mp4" type="video/mp4" />
-          </video>
-          <video id="avatar2" class="for-videos" autoplay muted playsinline preload="auto" loop style="opacity: 0;">
-            <source src="img/relaxed.mp4" type="video/mp4" />
-          </video>
+          <video id="avatar" class="for-videos" autoplay muted playsinline preload="auto" loop style="opacity: 1;" src="img/relaxed.mp4"></video>
+          <video id="avatar2" class="for-videos" autoplay muted playsinline preload="auto" loop style="opacity: 0;" src="img/relaxed.mp4"></video>
 
           <div class="text-background"></div>
 
@@ -170,7 +168,6 @@
         isCalling = false;
 
         if (response.status === 429) {
-          console.error("429 Too Many Requests");
           return "（星星累了，稍后再聊好嘛～）";
         }
 
@@ -202,20 +199,18 @@
 
       function speakText(text) {
         const newSrc = handleAvatarAction(text);
-        const current = avatar1.style.opacity === "1" || avatar1.style.opacity === "" ? avatar1 : avatar2;
+        const current = avatar1.style.opacity === "1" ? avatar1 : avatar2;
         const next = current === avatar1 ? avatar2 : avatar1;
-        const currentSource = current.querySelector("source");
-        const nextSource = next.querySelector("source");
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = "zh-CN";
         utterance.pitch = 1.1;
         utterance.rate = 1.1;
 
-        speechSynthesis.cancel();
+        speechSynthesis.cancel(); // 清除之前语音
 
         next.pause();
-        nextSource.src = newSrc;
+        next.src = newSrc;
         next.load();
 
         next.oncanplay = () => {
@@ -233,9 +228,8 @@
           next.pause();
           next.loop = false;
           current.pause();
-          currentSource.src = "img/relaxed.mp4";
+          current.src = "img/relaxed.mp4";
           current.load();
-
           current.oncanplay = () => {
             current.loop = true;
             current.play();
