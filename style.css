@@ -176,3 +176,20 @@ object-fit: cover;
   letter-spacing: -0.42px;
   line-height: normal;
 }
+
+.digital-human .back-logo {
+position: absolute;
+width: 121px;
+height: 42px;
+top: 161px;
+left: 53px;
+}
+
+.digital-human .for-eat-videos {
+position: absolute;
+width: 1095px;
+height: 820px;
+top: 127px;
+left: 10px;
+object-fit: cover;
+}
