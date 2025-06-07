@@ -140,28 +140,6 @@
   letter-spacing: -0.36px;
   line-height: normal;
 }
-.digital-human .go-to-eating {
-width: 1117px;
-position: absolute;
-height: 820px;
-top: 127px;
-left: 0px;
-object-fit: cover;
-}
-
-.digital-human .eating-text {
-  position: absolute;
-  width: 127px;
-  top: 679px;
-  left: 593px;
-  font-family: "Poppins-SemiBold", Helvetica;
-  font-weight: 600;
-  color: #ffffff80;
-  font-size: 14px;
-  text-align: center;
-  letter-spacing: -0.42px;
-  line-height: normal;
-}
 
 .digital-human .by-me {
   position: absolute;
