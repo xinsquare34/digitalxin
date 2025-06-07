@@ -47,20 +47,13 @@
         align-self: flex-start;
       }
       
-      /* 添加按钮悬停效果 */
-      .go-to-eating {
-        cursor: pointer;
-        transition: transform 0.2s ease;
-      }
-      .go-to-eating:hover {
-        transform: scale(1.02);
-      }
+      /* 为用餐陪伴按钮添加悬停效果 */
       .eating-text {
         cursor: pointer;
-        transition: color 0.2s ease;
+        transition: color 0.3s ease;
       }
       .eating-text:hover {
-        color: #da9c92 !important;
+        color: #da9c92;
       }
     </style>
   </head>
@@ -89,8 +82,8 @@
             <div class="chat-bubble bot">你好，我是你的餐伴星星。<br />你可以随时和我聊天哦～</div>
           </div>
 
-          <img class="go-to-eating" src="img/go-to-eating.png" id="eatingBtn" />
-          <div class="eating-text" id="eatingText">用餐陪伴点这里</div>
+          <img class="go-to-eating" src="img/go-to-eating.png" />
+          <div class="eating-text" id="eatingBtn">用餐陪伴点这里</div>
 
           <div class="by-me">By: LIU XINXIN</div>
         </div>
@@ -101,21 +94,7 @@
       const avatar = document.getElementById('avatar');
       const speakBtn = document.getElementById('speakBtn');
       const chatLog = document.getElementById('chatLog');
-      const eatingBtn = document.getElementById('eatingBtn');
-      const eatingText = document.getElementById('eatingText');
-
-      // 用餐陪伴按钮点击事件
-      function setupEatingButton() {
-        const handleClick = () => {
-          window.location.href = "https://digitalxin.vercel.app/eating.html";
-        };
-        
-        eatingBtn.addEventListener('click', handleClick);
-        eatingText.addEventListener('click', handleClick);
-      }
-
-      // 初始化用餐按钮
-      setupEatingButton();
+      const eatingBtn = document.getElementById('eatingBtn'); // 新增用餐陪伴按钮引用
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
@@ -130,6 +109,12 @@
         }
       ];
 
+      // 用餐陪伴按钮点击事件
+      eatingBtn.addEventListener('click', () => {
+        window.location.href = "https://digitalxin.vercel.app/eating.html";
+      });
+
+      // 原有语音按钮功能保持不变
       speakBtn.addEventListener('mousedown', () => {
         speakBtn.src = 'img/recording-text.png';
         recognition.start();
@@ -208,7 +193,7 @@
         } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
           newSrc = "img/shrug.mp4";
         }
-        return newSrc;
+        return newSrc; // 返回视频路径而不是直接设置
       }
 
       function speakText(text) {
@@ -226,6 +211,7 @@
         utterance.rate = 1.1;
         utterance.volume = 1;
         
+        // 语音结束时切换回relaxed状态
         utterance.onend = function() {
           if (avatar.querySelector('source').src !== "img/relaxed.mp4") {
             avatar.pause();
