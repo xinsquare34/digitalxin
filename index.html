@@ -170,15 +170,15 @@
 
   function handleAvatarAction(replyText) {
     // 关键词检测优先
-    if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("太棒")) {
+    if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
       return "img/happy.mp4";
     } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
       return "img/bow.mp4";
     } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
       return "img/shrug.mp4";
     }
-    // 默认返回说话状态
-    return "img/talking.mp4";
+    // 随机返回默认说话状态
+    return Math.random() > 0.5 ? "img/talking.mp4" : "img/talking-2.mp4";
   }
 
   function speakText(text) {
