@@ -207,27 +207,29 @@
         utterance.pitch = 1.1;
         utterance.rate = 1.1;
 
-        // ✅ 取消之前的语音播放，防止重复
+        // ✅ 取消旧语音，避免重复播放
         speechSynthesis.cancel();
 
-        // 切换视频
         next.pause();
         nextSource.src = newSrc;
         next.load();
 
         next.oncanplay = () => {
-          next.loop = true; // 情绪视频根据语音时长循环
+          next.loop = true;
           next.style.opacity = "1";
           current.style.opacity = "0";
           next.play();
 
-          speechSynthesis.speak(utterance);
+          // ✅ 稍作延迟，确保 cancel 生效
+          setTimeout(() => {
+            speechSynthesis.speak(utterance);
+          }, 100);
         };
 
-        // 语音播放结束后，切换回 relaxed
         utterance.onend = () => {
           next.pause();
           next.loop = false;
+
           current.pause();
           currentSource.src = "img/relaxed.mp4";
           current.load();
