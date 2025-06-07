@@ -25,7 +25,6 @@
         gap: 8px;
         padding-right: 6px;
       }
-
       .chat-bubble {
         background-color: #f6e7e1;
         border-radius: 8px;
@@ -37,36 +36,12 @@
         letter-spacing: -0.36px;
         word-break: break-word;
       }
-
       .chat-bubble.user {
         align-self: flex-end;
         background-color: #fbdad2;
       }
-
       .chat-bubble.bot {
         align-self: flex-start;
-      }
-      
-      /* 新增视频容器样式 */
-      .video-container {
-        position: relative;
-        width: 100%;
-        height: 100%;
-      }
-      
-      .video-layer {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        transition: opacity 0.3s ease-in-out;
-        object-fit: cover;
-      }
-      
-      .video-layer.active {
-        opacity: 1;
       }
     </style>
   </head>
@@ -74,15 +49,9 @@
     <div class="digital-human">
       <div class="overlap-wrapper">
         <div class="overlap">
-          <!-- 修改为双层视频容器 -->
-          <div class="video-container">
-            <video id="avatar1" class="video-layer active" autoplay muted loop playsinline>
-              <source src="img/relaxed.mp4" type="video/mp4" />
-            </video>
-            <video id="avatar2" class="video-layer" autoplay muted loop playsinline>
-              <source src="img/relaxed.mp4" type="video/mp4" />
-            </video>
-          </div>
+          <video id="avatar" class="for-videos" autoplay muted loop playsinline>
+            <source src="img/relaxed.mp4" type="video/mp4" />
+          </video>
 
           <div class="text-background"></div>
 
@@ -93,9 +62,8 @@
             </div>
           </div>
 
-          <img class="speak-logo" src="img/speak-logo.png" id="speakBtn" draggable="false" ondragstart="return false;" />
+          <img class="speak-logo" src="img/speak-logo.png" id="speakBtn" draggable="false" />
           <div class="main-heading">星星 - 你的AI餐伴</div>
-
           <div class="chat-log" id="chatLog">
             <div class="chat-bubble bot">你好，我是你的餐伴星星。<br />你可以随时和我聊天哦～</div>
           </div>
@@ -105,34 +73,7 @@
     </div>
 
     <script>
-      // 视频元素和状态管理
-      const avatars = {
-        current: document.getElementById('avatar1'),
-        next: document.getElementById('avatar2')
-      };
-      let currentActive = 'current';
-      
-      // 预加载所有视频
-      const videoSources = {
-        relaxed: 'img/relaxed.mp4',
-        happy: 'img/happy.mp4',
-        bow: 'img/bow.mp4',
-        shrug: 'img/shrug.mp4',
-        teaching: 'img/teaching.mp4',
-        talking: 'img/talking.mp4',
-        talking2: 'img/talking-2.mp4'
-      };
-      
-      // 预加载视频
-      function preloadVideos() {
-        Object.values(videoSources).forEach(src => {
-          const video = document.createElement('video');
-          video.src = src;
-        });
-      }
-      
-      preloadVideos();
-
+      const avatar = document.getElementById('avatar');
       const speakBtn = document.getElementById('speakBtn');
       const chatLog = document.getElementById('chatLog');
 
@@ -145,9 +86,22 @@
       let messages = [
         {
           role: "system",
-          content: "你是"星星"，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
+          content: "你是“星星”，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
         }
       ];
+
+      const videoCache = [
+        "img/relaxed.mp4", "img/happy.mp4", "img/bow.mp4", "img/shrug.mp4",
+        "img/teaching.mp4", "img/talking.mp4", "img/talking-2.mp4"
+      ];
+
+      // 提前预加载视频，避免切换时卡顿
+      videoCache.forEach(src => {
+        const v = document.createElement('video');
+        v.src = src;
+        v.preload = "auto";
+        v.load();
+      });
 
       speakBtn.addEventListener('mousedown', () => {
         speakBtn.src = 'img/recording-text.png';
@@ -217,70 +171,42 @@
         return reply;
       }
 
-      function getVideoSource(replyText) {
-        // 关键词检测优先
+      function handleAvatarAction(replyText) {
         if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("太棒")) {
-          return videoSources.happy;
+          return "img/happy.mp4";
         } else if (replyText.includes("谢谢")) {
-          return videoSources.bow;
-        } else if (replyText.includes("不知道") || replyText.includes("不清楚") || replyText.includes("不太清楚") || replyText.includes("不太在行") || replyText.includes("嘻嘻") || replyText.includes("帮不上忙")) {
-          return videoSources.shrug;
+          return "img/bow.mp4";
+        } else if (replyText.includes("不知道") || replyText.includes("不清楚") || replyText.includes("帮不上忙")) {
+          return "img/shrug.mp4";
         } else if (replyText.includes("推荐") || replyText.includes("简单")) {
-          return videoSources.teaching;
+          return "img/teaching.mp4";
         }
-        // 随机返回默认说话状态
-        return Math.random() > 0.5 ? videoSources.talking : videoSources.talking2;
+        return Math.random() > 0.5 ? "img/talking.mp4" : "img/talking-2.mp4";
       }
 
-      function switchVideo(newSrc) {
-        return new Promise((resolve) => {
-          const nextActive = currentActive === 'current' ? 'next' : 'current';
-          const nextAvatar = avatars[nextActive];
-          const nextSource = nextAvatar.querySelector('source');
-          
-          // 如果已经是当前视频，不做切换
-          if (nextSource.src === newSrc) {
-            return resolve();
-          }
-          
-          // 准备下一个视频层
-          nextSource.src = newSrc;
-          nextAvatar.load();
-          
-          nextAvatar.oncanplay = () => {
-            // 确保视频能流畅播放
-            nextAvatar.play().catch(e => console.log("视频播放错误:", e));
-            
-            // 切换活动状态
-            avatars[currentActive].classList.remove('active');
-            nextAvatar.classList.add('active');
-            
-            // 更新当前活动视频
-            currentActive = nextActive;
-            
-            // 移除事件监听器
-            nextAvatar.oncanplay = null;
-            resolve();
-          };
-        });
-      }
-
-      async function speakText(text) {
-        const newSrc = getVideoSource(text);
-        await switchVideo(newSrc);
+      function speakText(text) {
+        const newSrc = handleAvatarAction(text);
+        if (!avatar.src.includes(newSrc)) {
+          avatar.pause();
+          avatar.src = newSrc;
+          avatar.load();
+          avatar.play().catch(e => console.warn("视频播放错误:", e));
+        }
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'zh-CN';
         utterance.pitch = 1.1;
         utterance.rate = 1.1;
-        
-        // 语音结束时切换回relaxed状态
-        utterance.onend = function() {
-          if (getVideoSource(text) !== videoSources.relaxed) {
-            switchVideo(videoSources.relaxed);
+
+        utterance.onend = function () {
+          if (!avatar.src.includes("relaxed.mp4")) {
+            avatar.pause();
+            avatar.src = "img/relaxed.mp4";
+            avatar.load();
+            avatar.play().catch(e => console.warn("视频恢复错误:", e));
           }
         };
-        
+
         speechSynthesis.speak(utterance);
       }
     </script>
