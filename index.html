@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta charset="utf-8" />
     <title>星星 - AI餐伴</title>
-    <link rel="icon" href="img/favicon.png" type="image/png">
+    <link rel="icon" href="img/favicon.png" type="image/png" />
     <link rel="stylesheet" href="globals.css" />
     <link rel="stylesheet" href="style.css" />
     <style>
@@ -48,29 +48,12 @@
         align-self: flex-start;
       }
 
-      .video-container {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-      }
-
       .for-videos {
-        position: absolute;
         width: 100%;
-        height: 100%;
-        object-fit: cover;
+        height: auto;
+        position: absolute;
         top: 0;
         left: 0;
-        z-index: 0;
-      }
-
-      #videoA {
-        z-index: 1;
-      }
-
-      #videoB {
-        z-index: 0;
       }
     </style>
   </head>
@@ -78,14 +61,12 @@
     <div class="digital-human">
       <div class="overlap-wrapper">
         <div class="overlap">
-
-          <!-- 双视频容器 -->
-          <div class="video-container">
-            <video id="videoA" class="for-videos" autoplay muted loop playsinline>
-              <source src="img/relaxed.mp4" type="video/mp4" />
-            </video>
-            <video id="videoB" class="for-videos" muted loop playsinline></video>
-          </div>
+          <video id="avatar" class="for-videos" autoplay muted playsinline preload="auto" loop style="opacity: 1;">
+            <source src="img/relaxed.mp4" type="video/mp4" />
+          </video>
+          <video id="avatar2" class="for-videos" autoplay muted playsinline preload="auto" loop style="opacity: 0;">
+            <source src="img/relaxed.mp4" type="video/mp4" />
+          </video>
 
           <div class="text-background"></div>
           <div class="text-box-group">
@@ -95,60 +76,60 @@
             </div>
           </div>
 
-          <img class="speak-logo" src="img/speak-logo.png" id="speakBtn" draggable="false" ondragstart="return false;" />
+          <img class="speak-logo" src="img/speak-logo.png" id="speakBtn" draggable="false" />
           <div class="main-heading">星星 - 你的AI餐伴</div>
-
           <div class="chat-log" id="chatLog">
             <div class="chat-bubble bot">你好，我是你的餐伴星星。<br />你可以随时和我聊天哦～</div>
           </div>
+
+          <img class="go-to-eating" src="img/go-to-eating.png" />
+          <div class="eating-text">用餐陪伴点这里</div>
           <div class="by-me">By: LIU XINXIN</div>
         </div>
       </div>
     </div>
 
     <script>
-      const speakBtn = document.getElementById('speakBtn');
-      const chatLog = document.getElementById('chatLog');
-      const videoA = document.getElementById('videoA');
-      const videoB = document.getElementById('videoB');
-
-      let activeVideo = videoA;
-      let idleVideo = videoB;
+      const avatar1 = document.getElementById("avatar");
+      const avatar2 = document.getElementById("avatar2");
+      const speakBtn = document.getElementById("speakBtn");
+      const chatLog = document.getElementById("chatLog");
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
-      recognition.lang = 'zh-CN';
+      recognition.lang = "zh-CN";
 
       let isCalling = false;
+      let currentUtterance = null;
 
-      let messages = [
+      const messages = [
         {
           role: "system",
-          content: "你是“星星”，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
+          content: "你是“星星”，2001年出生的女生...
         }
       ];
 
-      speakBtn.addEventListener('mousedown', () => {
-        speakBtn.src = 'img/recording-text.png';
+      speakBtn.addEventListener("mousedown", () => {
+        speakBtn.src = "img/recording-text.png";
         recognition.start();
       });
 
-      speakBtn.addEventListener('mouseup', () => {
-        speakBtn.src = 'img/speak-logo.png';
+      speakBtn.addEventListener("mouseup", () => {
+        speakBtn.src = "img/speak-logo.png";
         recognition.stop();
       });
 
       recognition.onresult = async (event) => {
         const userText = event.results[0][0].transcript;
-        addChatBubble('user', userText);
+        addChatBubble("user", userText);
 
         const botReply = await getXingxingReply(userText);
-        addChatBubble('bot', botReply);
+        addChatBubble("bot", botReply);
         speakText(botReply);
       };
 
       function addChatBubble(sender, text) {
-        const bubble = document.createElement('div');
+        const bubble = document.createElement("div");
         bubble.className = `chat-bubble ${sender}`;
         bubble.textContent = text;
         chatLog.appendChild(bubble);
@@ -156,83 +137,80 @@
       }
 
       async function getXingxingReply(userInput) {
-        if (isCalling) {
-          return "（星星正在思考中…）";
-        }
+        if (isCalling) return "（星星正在思考中…）";
         isCalling = true;
 
         messages.push({ role: "user", content: userInput });
-        if (messages.length > 21) {
-          messages = [messages[0], ...messages.slice(-20)];
-        }
+        if (messages.length > 21) messages.splice(1, messages.length - 21);
 
         const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer sk-0e19faf29ca241e4bab6264a0536232b`
+            Authorization: `Bearer sk-xxxxx`,
           },
-          body: JSON.stringify({
-            model: "deepseek-chat",
-            messages: messages,
-            temperature: 0.8
-          })
+          body: JSON.stringify({ model: "deepseek-chat", messages, temperature: 0.8 })
         });
 
         isCalling = false;
-
-        if (response.status === 429) {
-          return "（星星累了，稍后再聊好嘛～）";
-        }
-
         const data = await response.json();
-        const reply = data.choices[0]?.message?.content?.trim() || "（星星有点走神了呢…）";
+        const reply = data.choices[0]?.message?.content?.trim() || "（星星有点走神了呢）";
         messages.push({ role: "assistant", content: reply });
         return reply;
       }
 
-      function getVideoSrc(replyText) {
-        if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("太棒")) {
-          return "img/happy.mp4";
-        } else if (replyText.includes("谢谢")) {
-          return "img/bow.mp4";
-        } else if (replyText.includes("不知道") || replyText.includes("不清楚") || replyText.includes("帮不上忙")) {
-          return "img/shrug.mp4";
-        } else if (replyText.includes("推荐") || replyText.includes("简单")) {
-          return "img/teaching.mp4";
-        }
+      function handleAvatarAction(text) {
+        if (text.includes("高兴") || text.includes("太棒")) return "img/happy.mp4";
+        if (text.includes("谢谢")) return "img/bow.mp4";
+        if (text.includes("不知")) return "img/shrug.mp4";
+        if (text.includes("推荐")) return "img/teaching.mp4";
         return Math.random() > 0.5 ? "img/talking.mp4" : "img/talking-2.mp4";
       }
 
-      function swapVideos(newSrc) {
-        idleVideo.src = newSrc;
-        idleVideo.load();
-        idleVideo.oncanplay = () => {
-          idleVideo.play();
-          activeVideo.style.zIndex = 0;
-          idleVideo.style.zIndex = 1;
-
-          // 交换 video 的角色
-          [activeVideo, idleVideo] = [idleVideo, activeVideo];
-        };
-      }
-
       function speakText(text) {
-        const videoSrc = getVideoSrc(text);
-        if (!activeVideo.src.endsWith(videoSrc)) {
-          swapVideos(videoSrc);
+        const videoSrc = handleAvatarAction(text);
+        const current = avatar1.style.opacity === "1" ? avatar1 : avatar2;
+        const next = current === avatar1 ? avatar2 : avatar1;
+
+        const currentSource = current.querySelector("source");
+        const nextSource = next.querySelector("source");
+
+        // Cancel any previous utterance
+        if (currentUtterance) {
+          currentUtterance.onend = null;
+          speechSynthesis.cancel();
         }
 
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'zh-CN';
+        utterance.lang = "zh-CN";
         utterance.pitch = 1.1;
         utterance.rate = 1.1;
+        currentUtterance = utterance;
 
-        utterance.onend = function () {
-          swapVideos("img/relaxed.mp4");
+        next.pause();
+        nextSource.src = videoSrc;
+        next.load();
+
+        next.oncanplay = () => {
+          next.loop = true;
+          next.style.opacity = "1";
+          current.style.opacity = "0";
+          next.play();
+          speechSynthesis.speak(utterance);
         };
 
-        speechSynthesis.speak(utterance);
+        utterance.onend = () => {
+          next.pause();
+          next.loop = false;
+          currentSource.src = "img/relaxed.mp4";
+          current.load();
+          current.oncanplay = () => {
+            current.loop = true;
+            current.play();
+            current.style.opacity = "1";
+            next.style.opacity = "0";
+          };
+        };
       }
     </script>
   </body>
