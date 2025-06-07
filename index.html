@@ -47,7 +47,7 @@
         align-self: flex-start;
       }
       
-      /* 添加点击区域样式 */
+      /* 修改点击区域样式 */
       .eating-click-area {
         position: absolute;
         width: 127px;
@@ -56,6 +56,8 @@
         left: 593px;
         cursor: pointer;
         z-index: 10;
+        /* 添加背景色用于调试，正式使用时可以移除 */
+        background-color: rgba(255,0,0,0.1);
       }
     </style>
   </head>
@@ -86,8 +88,8 @@
 
           <img class="go-to-eating" src="img/go-to-eating.png" />
           <div class="eating-text">用餐陪伴点这里</div>
-          <!-- 添加透明的点击区域 -->
-          <div class="eating-click-area" id="eatingBtn"></div>
+          <!-- 修改点击区域为按钮形式 -->
+          <button class="eating-click-area" id="eatingBtn"></button>
 
           <div class="by-me">By: LIU XINXIN</div>
         </div>
@@ -95,137 +97,166 @@
     </div>
 
     <script>
-      const avatar = document.getElementById('avatar');
-      const speakBtn = document.getElementById('speakBtn');
-      const chatLog = document.getElementById('chatLog');
-      const eatingBtn = document.getElementById('eatingBtn'); // 获取用餐按钮
+      // 确保DOM完全加载后再执行
+      document.addEventListener('DOMContentLoaded', function() {
+        const avatar = document.getElementById('avatar');
+        const speakBtn = document.getElementById('speakBtn');
+        const chatLog = document.getElementById('chatLog');
+        const eatingBtn = document.getElementById('eatingBtn');
 
-      // 添加用餐按钮点击事件
-      eatingBtn.addEventListener('click', () => {
-        window.location.href = 'eating.html';
-      });
-
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'zh-CN';
-
-      let isCalling = false;
-
-      let messages = [
-        {
-          role: "system",
-          content: "你是"星星"，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
-        }
-      ];
-
-      speakBtn.addEventListener('mousedown', () => {
-        speakBtn.src = 'img/recording-text.png';
-        recognition.start();
-      });
-
-      speakBtn.addEventListener('mouseup', () => {
-        speakBtn.src = 'img/speak-logo.png';
-        recognition.stop();
-      });
-
-      recognition.onresult = async (event) => {
-        const userText = event.results[0][0].transcript;
-        addChatBubble('user', userText);
-
-        const botReply = await getXingxingReply(userText);
-        addChatBubble('bot', botReply);
-        speakText(botReply);
-        handleAvatarAction(botReply);
-      };
-
-      function addChatBubble(sender, text) {
-        const bubble = document.createElement('div');
-        bubble.className = `chat-bubble ${sender}`;
-        bubble.textContent = text;
-        chatLog.appendChild(bubble);
-        chatLog.scrollTop = chatLog.scrollHeight;
-      }
-
-      async function getXingxingReply(userInput) {
-        if (isCalling) {
-          console.warn("请稍后再试，限流中...");
-          return "（星星正在思考中…）";
-        }
-        isCalling = true;
-
-        messages.push({ role: "user", content: userInput });
-        if (messages.length > 21) {
-          messages = [messages[0], ...messages.slice(-20)];
-        }
-
-        const apiKey = "sk-0e19faf29ca241e4bab6264a0536232b";
-        const endpoint = "https://api.deepseek.com/v1/chat/completions";
-
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: "deepseek-chat",
-            messages: messages,
-            temperature: 0.8
-          })
+        // 修复1: 确保eating.html存在或添加错误处理
+        eatingBtn.addEventListener('click', () => {
+          try {
+            window.location.href = 'eating.html';
+          } catch (error) {
+            console.error('跳转失败:', error);
+            alert('用餐陪伴功能即将开放，敬请期待！');
+          }
         });
 
-        isCalling = false;
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        // 修复2: 检查浏览器是否支持语音识别
+        if (!SpeechRecognition) {
+          console.error('浏览器不支持语音识别');
+          speakBtn.style.display = 'none';
+        } else {
+          const recognition = new SpeechRecognition();
+          recognition.lang = 'zh-CN';
+          recognition.interimResults = false;
+          recognition.maxAlternatives = 1;
 
-        if (response.status === 429) {
-          console.error("429 Too Many Requests");
-          return "（星星累了，稍后再聊好嘛～）";
+          let isCalling = false;
+
+          let messages = [
+            {
+              role: "system",
+              content: "你是"星星"，2001年出生的女生，是用户的陪伴型数字人朋友。性格温暖、精心，善于饮食营养、烹饪、生活小建议。你会用亲切且知性的调体和用户对话，就像好朋友一样。你能回答任何问题，不过回答一般都会比较简短。**请你只用对话方式回答，不要输出括号里的动作描述或表情，只需要直接说话内容。**"
+            }
+          ];
+
+          // 修复3: 使用pointerdown/pointerup替代mousedown/mouseup以支持触摸设备
+          speakBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            speakBtn.src = 'img/recording-text.png';
+            recognition.start();
+          });
+
+          speakBtn.addEventListener('pointerup', (e) => {
+            e.preventDefault();
+            speakBtn.src = 'img/speak-logo.png';
+            recognition.stop();
+          });
+
+          recognition.onresult = async (event) => {
+            const userText = event.results[0][0].transcript;
+            addChatBubble('user', userText);
+
+            const botReply = await getXingxingReply(userText);
+            addChatBubble('bot', botReply);
+            speakText(botReply);
+            handleAvatarAction(botReply);
+          };
+
+          // 修复4: 添加错误处理
+          recognition.onerror = (event) => {
+            console.error('语音识别错误:', event.error);
+            speakBtn.src = 'img/speak-logo.png';
+          };
         }
 
-        const data = await response.json();
-        const reply = data.choices[0]?.message?.content?.trim() || "（星星有点走神了呢…）";
-        messages.push({ role: "assistant", content: reply });
-        return reply;
-      }
-
-      function handleAvatarAction(replyText) {
-        let newSrc = "img/relaxed.mp4";
-        if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
-          newSrc = "img/happy.mp4";
-        } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
-          newSrc = "img/bow.mp4";
-        } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
-          newSrc = "img/shrug.mp4";
-        }
-        return newSrc; // 返回视频路径而不是直接设置
-      }
-
-      function speakText(text) {
-        const newSrc = handleAvatarAction(text);
-        if (avatar.querySelector('source').src !== newSrc) {
-          avatar.pause();
-          avatar.querySelector('source').src = newSrc;
-          avatar.load();
-          avatar.play();
+        function addChatBubble(sender, text) {
+          const bubble = document.createElement('div');
+          bubble.className = `chat-bubble ${sender}`;
+          bubble.textContent = text;
+          chatLog.appendChild(bubble);
+          chatLog.scrollTop = chatLog.scrollHeight;
         }
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'zh-CN';
-        utterance.pitch = 1.1;
-        utterance.rate = 1.1;
-        utterance.volume = 1;
-        
-        // 语音结束时切换回relaxed状态
-        utterance.onend = function() {
-          if (avatar.querySelector('source').src !== "img/relaxed.mp4") {
-            avatar.pause();
-            avatar.querySelector('source').src = "img/relaxed.mp4";
-            avatar.load();
-            avatar.play();
+        async function getXingxingReply(userInput) {
+          if (isCalling) {
+            console.warn("请稍后再试，限流中...");
+            return "（星星正在思考中…）";
           }
-        };
-        
-        speechSynthesis.speak(utterance);
-      }
+          isCalling = true;
+
+          messages.push({ role: "user", content: userInput });
+          if (messages.length > 21) {
+            messages = [messages[0], ...messages.slice(-20)];
+          }
+
+          const apiKey = "sk-0e19faf29ca241e4bab6264a0536232b";
+          const endpoint = "https://api.deepseek.com/v1/chat/completions";
+
+          try {
+            const response = await fetch(endpoint, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+              },
+              body: JSON.stringify({
+                model: "deepseek-chat",
+                messages: messages,
+                temperature: 0.8
+              })
+            });
+
+            if (response.status === 429) {
+              console.error("429 Too Many Requests");
+              return "（星星累了，稍后再聊好嘛～）";
+            }
+
+            const data = await response.json();
+            const reply = data.choices[0]?.message?.content?.trim() || "（星星有点走神了呢…）";
+            messages.push({ role: "assistant", content: reply });
+            return reply;
+          } catch (error) {
+            console.error("API请求错误:", error);
+            return "（星星网络不太好，稍等一下哦～）";
+          } finally {
+            isCalling = false;
+          }
+        }
+
+        function handleAvatarAction(replyText) {
+          let newSrc = "img/relaxed.mp4";
+          if (replyText.includes("高兴") || replyText.includes("开心") || replyText.includes("喜欢")) {
+            newSrc = "img/happy.mp4";
+          } else if (replyText.includes("谢谢") || replyText.includes("鞠躬")) {
+            newSrc = "img/bow.mp4";
+          } else if (replyText.includes("不知道") || replyText.includes("不清楚")) {
+            newSrc = "img/shrug.mp4";
+          }
+          return newSrc;
+        }
+
+        function speakText(text) {
+          const newSrc = handleAvatarAction(text);
+          if (avatar.querySelector('source').src !== newSrc) {
+            avatar.pause();
+            avatar.querySelector('source').src = newSrc;
+            avatar.load();
+            avatar.play().catch(e => console.error("视频播放失败:", e));
+          }
+
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'zh-CN';
+          utterance.pitch = 1.1;
+          utterance.rate = 1.1;
+          utterance.volume = 1;
+          
+          utterance.onend = function() {
+            if (avatar.querySelector('source').src !== "img/relaxed.mp4") {
+              avatar.pause();
+              avatar.querySelector('source').src = "img/relaxed.mp4";
+              avatar.load();
+              avatar.play().catch(e => console.error("视频播放失败:", e));
+            }
+          };
+          
+          speechSynthesis.speak(utterance);
+        }
+      });
     </script>
   </body>
 </html>
