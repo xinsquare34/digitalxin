@@ -61,7 +61,7 @@
     <div class="digital-human">
       <div class="overlap-wrapper">
         <div class="overlap">
-          <!-- 双视频结构 + 默认 relaxed.mp4 循环 -->
+          <!-- 双视频结构 -->
           <video id="avatar" class="for-videos" autoplay muted playsinline preload="auto" loop style="opacity: 1;">
             <source src="img/relaxed.mp4" type="video/mp4" />
           </video>
@@ -207,26 +207,27 @@
         utterance.pitch = 1.1;
         utterance.rate = 1.1;
 
-        // 准备切换情绪视频
+        // ✅ 取消之前的语音播放，防止重复
+        speechSynthesis.cancel();
+
+        // 切换视频
         next.pause();
         nextSource.src = newSrc;
         next.load();
 
         next.oncanplay = () => {
-          // 切换到情绪视频层，并播放循环动画
-          next.loop = true; // ✅ 根据语音持续循环
+          next.loop = true; // 情绪视频根据语音时长循环
           next.style.opacity = "1";
           current.style.opacity = "0";
           next.play();
 
-          speechSynthesis.cancel();
           speechSynthesis.speak(utterance);
         };
 
+        // 语音播放结束后，切换回 relaxed
         utterance.onend = () => {
-          // 语音结束时切回 relaxed.mp4
           next.pause();
-          next.loop = false; // ✅ 关闭循环以避免下次残留
+          next.loop = false;
           current.pause();
           currentSource.src = "img/relaxed.mp4";
           current.load();
